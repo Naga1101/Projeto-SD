@@ -60,26 +60,28 @@ public class UsersAuthenticator { // flags entre 0-9 são para funções relativ
     }
 
     public int logUserIn(String name, String password) {
-        readLock.lock();
+        writeLock.lock();
         try {
-            if (!usersList.containsKey(name)) return 4; // 4 se o user não existir
+            if (!usersList.containsKey(name)) return 4; // 4 se o user não existir ou utilizar o 6?
 
             ClientData userLoggingIn = usersList.get(name);
 
-            if (userLoggingIn.isOnline()) return 5; // 5 se o user já se encontraR online
+            if (userLoggingIn.isOnline()) return 5; // 5 se o user já se encontrar online
             
             if (!userLoggingIn.verifyCreds(password)) return 6; // 6 se a password não estiver correta
 
-            setUserOnline(userLoggingIn);
+            //setUserOnline(userLoggingIn);
+            userLoggingIn.setUserOnline();
             return 2; // 2 se os credenciais forem verificados com sucesso      
         } finally {
-            readLock.unlock();
+            writeLock.unlock();
         }
     }
 
-    public int logUserOut(ClientData userLoggingOff) {
+    public int logUserOut(String name) {
         writeLock.lock();
         try {
+            ClientData userLoggingOff = usersList.get(name);
             userLoggingOff.setUserOffline();
             return 3; // 3 quando o user dá log out
         } finally {
