@@ -1,0 +1,17 @@
+# Ignore class files
+*.class
+
+# Ignore compiled files in specific directories
+**/*.class
+
+# Ignore IDE specific files (if applicable)
+.idea/
+*.iml
+*.vscode/
+*.gradle/
+/build/
+/out/
+
+# Ignore other common files
+*.log
+*.tmp
