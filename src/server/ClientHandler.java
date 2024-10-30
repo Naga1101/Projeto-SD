@@ -2,15 +2,18 @@ package server;
 
 import java.io.*;
 import java.net.*;
+import java.net.Authenticator;
 import java.util.concurrent.*;
 
-class ClientHandler implements Runnable {
+public class ClientHandler implements Runnable {
     private Socket clientSocket;
     private DataInputStream in;
     private DataOutputStream out;
+    private UsersAuthenticator usersAuthenticator;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Socket socket, UsersAuthenticator usersAuthenticator) {
         this.clientSocket = socket;
+        this.usersAuthenticator = usersAuthenticator;
         try {
             in = new DataInputStream(clientSocket.getInputStream());
             out = new DataOutputStream(clientSocket.getOutputStream());
@@ -45,7 +48,7 @@ class ClientHandler implements Runnable {
         try {
             while (true) {
                 // Send response to the client
-                String response = "Server reply at " + System.currentTimeMillis();
+                String response = "Server reply at " + System.currentTimeMillis() + "\n" + usersAuthenticator.toString();
                 out.writeUTF(response);
                 out.flush();
                 Thread.sleep(5000); // Delay for demonstration
