@@ -2,18 +2,23 @@ package server;
 
 import java.io.*;
 import java.net.*;
-import java.net.Authenticator;
 import java.util.concurrent.*;
+
+import messagesFormat.AuthReply;
+import messagesFormat.LoginMsg;
+import messagesFormat.RegisterMsg;
 
 public class ClientHandler implements Runnable {
     private Socket clientSocket;
     private DataInputStream in;
     private DataOutputStream out;
     private UsersAuthenticator usersAuthenticator;
+    private Timer activeTimer;
 
     public ClientHandler(Socket socket, UsersAuthenticator usersAuthenticator) {
         this.clientSocket = socket;
         this.usersAuthenticator = usersAuthenticator;
+        //this.activeTimer = new Timer();
         try {
             in = new DataInputStream(clientSocket.getInputStream());
             out = new DataOutputStream(clientSocket.getOutputStream());
@@ -24,12 +29,67 @@ public class ClientHandler implements Runnable {
 
     @Override
     public void run() {
-        // Start threads for reading and replying to the client
-        Thread readerThread = new Thread(this::readFromClient);
-        Thread replyThread = new Thread(this::replyToClient);
+        boolean loggedIn = false;
 
-        readerThread.start();
-        replyThread.start();
+        loggedIn = authenticateUser(in, out);
+
+        if(loggedIn){
+            Thread readerThread = new Thread(this::readFromClient);
+            Thread replyThread = new Thread(this::replyToClient);
+            
+            readerThread.start();
+            replyThread.start();
+        }
+    }
+
+    private boolean authenticateUser(DataInputStream in, DataOutputStream out) {
+        boolean loggedIn = false;
+        int reply = -1;
+        String name;
+        String password;
+        try {
+            while(!loggedIn){
+                byte opcode = in.readByte();
+                switch(opcode){
+					case 1:
+						LoginMsg logRequest = new LoginMsg();
+						logRequest.deserialize(in);
+
+                        System.out.println(logRequest);
+
+                        name = logRequest.getUsername();
+                        password = logRequest.getPassword();
+
+                        reply = usersAuthenticator.logUserIn(name, password);
+
+                        if(reply == 2) loggedIn = true;
+
+						break;
+					case 2:
+						RegisterMsg regRequest = new RegisterMsg();
+						regRequest.deserialize(in);
+
+                        System.out.println(regRequest);
+
+                        name = regRequest.getUsername();
+                        password = regRequest.getPassword();
+
+                        reply = usersAuthenticator.registerUser(name, password);
+                        
+						break;
+                    default:
+                        break;
+                    }
+
+                AuthReply answReply = new AuthReply(reply, "test");
+                answReply.serialize(out);
+                out.flush();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false; // Assume login failed on error
+        }
+        return loggedIn;
     }
 
     private void readFromClient() {

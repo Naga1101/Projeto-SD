@@ -3,7 +3,7 @@ package server;
 import server.ClientData;
 import server.UsersAuthenticator;
 
-public class TestClient {
+public class TestAuthenticator {
     public static void main(String[] args) {
         try {
             String test1 = "testUser1";
@@ -79,6 +79,6 @@ public class TestClient {
 /**
  * Para compilar e correr estes testes é preciso utilizar estes comandos por ordem no terminal aberto na pasta src
  * javac -d out -sourcepath main/java main/java/server/*.java
- * javac -d out -cp out -sourcepath test/java test/java/server/TestClient.java 
- * java -cp out server.TestClient
+ * javac -d out -cp out -sourcepath test/java test/java/server/TestAuthenticator.java 
+ * java -cp out server.TestAuthenticator
  */
