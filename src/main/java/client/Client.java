@@ -8,6 +8,8 @@ import messagesFormat.AuthReply;
 import messagesFormat.LoginMsg;
 import messagesFormat.RegisterMsg;
 
+import static client.ClientInterface.printRegisterUserReply;
+
 public class Client {
     private static final String SERVER_ADDRESS = "localhost";
     private static final int SERVER_PORT = 12345;
@@ -60,6 +62,7 @@ public class Client {
     private boolean clientLogin(DataOutputStream out, DataInputStream in){
         boolean loggedIn = false;
         int reply = -1;
+        String name = "";
         Scanner scanner = new Scanner(System.in);
         try {
             while (!loggedIn && !turnOff) {
@@ -70,7 +73,7 @@ public class Client {
 
                 if(option == 1){
                     System.out.print("Escreva o seu username: ");
-                    String name = scanner.nextLine();
+                    name = scanner.nextLine();
                     System.out.print("Escreva a sua password: ");
                     String password = scanner.nextLine();
 
@@ -92,7 +95,7 @@ public class Client {
                 }
                 else if(option == 2){
                     System.out.print("Escreva o seu username: ");
-                    String name = scanner.nextLine();
+                    name = scanner.nextLine();
                     System.out.print("Escreva a sua password: ");
                     String password = scanner.nextLine();
 
@@ -114,7 +117,7 @@ public class Client {
                 }
                 out.flush();
 
-                if(!turnOff) System.out.println(reply); // TODO: substituir este print do nmero da reply pelo print correspondente, fazer a função como a do testAuth
+                if(!turnOff) printRegisterUserReply(reply, name);
             }
         } catch (IOException e) {
             e.printStackTrace();
