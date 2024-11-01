@@ -1,7 +1,17 @@
 package client;
 
 public class ClientInterface {
-    // meter aqui as funções que vão fazer os prints e receber os valores das replys e dar print ao que eles significam
+
+    public static void menuCliente(){
+        System.out.println("\n");
+        System.out.println("----------- MENU DO CLIENTE -----------");
+        System.out.println("\n");
+        System.out.println("Seleccione a acção pretendida:");
+        System.out.println("\n");
+        System.out.println("1 - Login");
+        System.out.println("2 - Registar novo Utilizador");
+        System.out.println("3 - Sair");
+    }
 
     public static void printRegisterUserReply(int reply , String user) {
         switch (reply) {

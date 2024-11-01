@@ -8,7 +8,7 @@ import messagesFormat.AuthReply;
 import messagesFormat.LoginMsg;
 import messagesFormat.RegisterMsg;
 
-import static client.ClientInterface.printRegisterUserReply;
+import static client.ClientInterface.*;
 
 public class Client {
     private static final String SERVER_ADDRESS = "localhost";
@@ -67,7 +67,7 @@ public class Client {
         try {
             while (!loggedIn && !turnOff) {
                 // print das opções do menu 1 login | 2 registar | 3 fechar
-                System.out.print("Selecione a ação que pretende fazer: ");
+                menuCliente();
                 int option = scanner.nextInt();
                 scanner.nextLine();
 
