@@ -1,6 +1,6 @@
 package client;
 
-public class ClientInterface {
+public class ClientMenus {
 
     public static void menuCliente(){
         System.out.println("\n");

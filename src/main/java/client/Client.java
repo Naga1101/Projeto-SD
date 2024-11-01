@@ -8,7 +8,7 @@ import messagesFormat.AuthReply;
 import messagesFormat.LoginMsg;
 import messagesFormat.RegisterMsg;
 
-import static client.ClientInterface.*;
+import static client.ClientMenus.*;
 
 public class Client {
     private static final String SERVER_ADDRESS = "localhost";
