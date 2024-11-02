@@ -14,11 +14,12 @@ public class ClientHandler implements Runnable {
     private DataOutputStream out;
     private UsersAuthenticator usersAuthenticator;
     private Timer activeTimer;
+    private static Runnable onTimeout = () -> System.out.println("Inactive for to long!!");
 
     public ClientHandler(Socket socket, UsersAuthenticator usersAuthenticator) {
         this.clientSocket = socket;
         this.usersAuthenticator = usersAuthenticator;
-        //this.activeTimer = new Timer();
+        this.activeTimer = new Timer(onTimeout, usersAuthenticator);
         try {
             in = new DataInputStream(clientSocket.getInputStream());
             out = new DataOutputStream(clientSocket.getOutputStream());
@@ -30,6 +31,8 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         boolean loggedIn = false;
+
+        activeTimer.startCountdown();
 
         loggedIn = authenticateUser(in, out);
 
@@ -50,6 +53,7 @@ public class ClientHandler implements Runnable {
         try {
             while(!loggedIn){
                 byte opcode = in.readByte();
+                activeTimer.resetCountdown();
                 switch(opcode){
 					case 1:
 						LoginMsg logRequest = new LoginMsg();
@@ -62,7 +66,10 @@ public class ClientHandler implements Runnable {
 
                         reply = usersAuthenticator.logUserIn(name, password);
 
-                        if(reply == 2) loggedIn = true;
+                        if(reply == 2){
+                            loggedIn = true;
+                            activeTimer.assignUsernameToTimer(name);
+                        }
 
 						break;
 					case 2:
@@ -87,6 +94,7 @@ public class ClientHandler implements Runnable {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            Server.clientDisconnected();
             return false; // Assume login failed on error
         }
         return loggedIn;
@@ -101,6 +109,7 @@ public class ClientHandler implements Runnable {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            Server.clientDisconnected();
         }
     }
 

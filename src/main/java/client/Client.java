@@ -14,6 +14,7 @@ public class Client {
     private static final String SERVER_ADDRESS = "localhost";
     private static final int SERVER_PORT = 12345;
     private boolean turnOff = false;
+    private ClientMenus menus = new ClientMenus();
 
     public static void main(String[] args) {
         Client client = new Client();
@@ -67,7 +68,7 @@ public class Client {
         try {
             while (!loggedIn && !turnOff) {
                 // print das opções do menu 1 login | 2 registar | 3 fechar
-                menuCliente();
+                menus.menuCliente();
                 int option = scanner.nextInt();
                 scanner.nextLine();
 
@@ -117,7 +118,7 @@ public class Client {
                 }
                 out.flush();
 
-                if(!turnOff) printRegisterUserReply(reply, name);
+                if(!turnOff) menus.printRegisterUserReply(reply, name);
             }
         } catch (IOException e) {
             e.printStackTrace();

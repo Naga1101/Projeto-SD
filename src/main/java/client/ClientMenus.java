@@ -2,7 +2,9 @@ package client;
 
 public class ClientMenus {
 
-    public static void menuCliente(){
+    public ClientMenus() {}
+
+    public void menuCliente(){
         System.out.println("\n");
         System.out.println("----------- MENU DO CLIENTE -----------");
         System.out.println("\n");
@@ -13,7 +15,7 @@ public class ClientMenus {
         System.out.println("3 - Sair");
     }
 
-    public static void printRegisterUserReply(int reply , String user) {
+    public void printRegisterUserReply(int reply , String user) {
         switch (reply) {
             case 0:
                 System.out.println("User " + user + " já existe.\n");
