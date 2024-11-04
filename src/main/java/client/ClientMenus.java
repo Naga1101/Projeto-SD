@@ -4,7 +4,7 @@ public class ClientMenus {
 
     public ClientMenus() {}
 
-    public void menuCliente(){
+    public void menuLogin(){
         System.out.println("\n");
         System.out.println("----------- MENU DO CLIENTE -----------");
         System.out.println("\n");

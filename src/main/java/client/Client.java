@@ -68,7 +68,7 @@ public class Client {
         try {
             while (!loggedIn && !turnOff) {
                 // print das opções do menu 1 login | 2 registar | 3 fechar
-                menus.menuCliente();
+                menus.menuLogin();
                 int option = scanner.nextInt();
                 scanner.nextLine();
 

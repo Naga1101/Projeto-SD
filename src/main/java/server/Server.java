@@ -66,7 +66,7 @@ public class Server {
                     //System.out.println("Arrival order: " + arrivalOrder);
                     //System.out.println("Waiting users: " + mapWaitingUsers);
                     System.out.println("New user: " + newUser);
-                    waitingQueueCondition.signal();
+                    if(currentOnlineUsers < maxConcurrentUsers) waitingQueueCondition.signal();
                 } finally {
                     waitingUsersLock.unlock();
                 }
