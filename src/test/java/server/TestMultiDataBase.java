@@ -58,9 +58,16 @@ public class TestMultiDataBase {
         }
 
         long firstRoundEndTime = System.nanoTime();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
         long firstRoundTime = (firstRoundEndTime - firstRoundStartTime) / 1_000_000; 
-        System.out.println("First round with the lock all took: " + firstRoundTime + " ms");
-
+        System.out.println("FIRST ROUND WITH THE LOCK ALL TOOK: " + firstRoundTime + " ms");
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
         long secondRoundStartTime = System.nanoTime();
 
         for (int i = 0; i < 10; i++) {

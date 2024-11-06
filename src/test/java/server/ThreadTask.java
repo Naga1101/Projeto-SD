@@ -18,16 +18,18 @@ public class ThreadTask implements Runnable {
     @Override
     public void run() {
         if (isFirstRound) {
-            for (int j = 0; j < 5; j++) {
+            for (int j = 0; j < requestData.getRequestedKeySets().size(); j++) {
                 int numKeys = requestData.getRequestedKeyCounts().get(j);
                 Set<String> keys = requestData.getRequestedKeySets().get(j);
     
                 Map<String, byte[]> result = db.multiGetLockAll(keys);
+                
                 System.out.println("Thread " + threadId + " retrieved:");
                 for (Map.Entry<String, byte[]> entry : result.entrySet()) {
                     System.out.println("  " + entry.getKey() + " => " + (entry.getValue() != null ? Arrays.toString(entry.getValue()) : "null"));
                 }
                 System.out.println();
+                
             }
         }
 
@@ -35,11 +37,12 @@ public class ThreadTask implements Runnable {
             for (int i = 0; i < requestData.getRequestedKeySets().size(); i++) {
                 Set<String> keys = requestData.getRequestedKeySets().get(i);
                 Map<String, byte[]> result = db.multiGetLockToCopy(keys);
+                
                 System.out.println("Thread " + threadId + " retrieved (Second round):");
                 for (Map.Entry<String, byte[]> entry : result.entrySet()) {
                     System.out.println("  " + entry.getKey() + " => " + (entry.getValue() != null ? Arrays.toString(entry.getValue()) : "null"));
                 }
-                System.out.println();
+                System.out.println();  
             }
         }
     }
