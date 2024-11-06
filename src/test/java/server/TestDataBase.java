@@ -1,14 +1,11 @@
 package server;
 
-import java.util.concurrent.CountDownLatch;
+import java.nio.charset.StandardCharsets;
 
 public class TestDataBase {
     public static void main(String[] args) {
         DataBase db = new DataBase();
         db.Database();
-
-        // CountDownLatch para assegurar que todas as threads acabaram
-        CountDownLatch latch = new CountDownLatch(10);
 
         // Simular vários clientes a mandar mensage
         System.out.println("\n-- Mensagens enviadas e recebidas --");
@@ -18,25 +15,24 @@ public class TestDataBase {
 
                 // Mensagem enviada pela thread (teste do método put)
                 String message = "Message from Client " + clientId;
-                db.put(String.valueOf(clientId), message);
+                db.put(String.valueOf(clientId), message.getBytes());
                 System.out.println("Client " + clientId + " sent message with ID: " + clientId + " saying: " + message);
 
                 // Mensagem recebida pela thread (teste do método get)
-                String retrievedMessage = db.get(String.valueOf(clientId));
+                byte[] retrievedMessage = db.get(String.valueOf(clientId));
+                String formattedRetrievedMessage = new String(retrievedMessage, StandardCharsets.UTF_8);
                 if (retrievedMessage == null) {
                     System.out.println("Client " + clientId + " tried to retrieve a message, but it doesn't exist.");
                 } else {
-                    System.out.println("Client " + clientId + " retrieved message: " + retrievedMessage);
+                    System.out.println("Client " + clientId + " retrieved message: " + formattedRetrievedMessage);
                 }
 
-
-                latch.countDown(); // Decrementar a contagem quando a thread acaba
             }).start();
         }
 
         try {
-            // Esperar que as threads acabem
-            latch.await();
+            // Esperar um tempo para que todas as threads terminem
+            Thread.sleep(100);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -1,6 +1,6 @@
 package server;
 
-import java.util.HashSet;
+import java.nio.charset.StandardCharsets;
 import java.util.Hashtable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -11,17 +11,18 @@ public class DataBase {
      * Permite valores e keys = null
      * Thread-friendly ao contrário do HashMap
      */
+
     // private static ConcurrentHashMap<String, String> dataBase;
-    private static Hashtable<String, String> dataBase;
+    private static Hashtable<String, byte[]> dataBase;
     private final ReentrantLock lock = new ReentrantLock();
 
     public void Database() {
-        // Inicializa o ConcurrentHashMap
+
         // dataBase = new ConcurrentHashMap<>();
         dataBase = new Hashtable<>();
     }
 
-    public void put(String messageId, String message) {
+    public void put(String messageId, byte[] message) {
         if (dataBase == null) {
             throw new IllegalStateException("Database not initialized");
         }
@@ -34,11 +35,20 @@ public class DataBase {
         }
     }
 
-    public String get(String messageId) {
+    public byte[] get(String messageId) {
         if (dataBase == null) {
             throw new IllegalStateException("Database not initialized");
         }
-        return dataBase.get(messageId);
+        
+        lock.lock();
+        byte[] message = null;
+        try{
+            message = dataBase.get(messageId);
+        } finally {
+            lock.unlock();
+        }
+
+        return message;
     }
 
     public void printAllMessages() {
@@ -49,7 +59,8 @@ public class DataBase {
         lock.lock();
         try {
             dataBase.forEach((key, value) -> {
-                System.out.println("ID: " + key + " - Message: " + value);
+                String message = new String(value, StandardCharsets.UTF_8);
+                System.out.println("ID: " + key + " - Message: " + message);
             });
         } finally {
             lock.unlock();
