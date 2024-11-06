@@ -39,6 +39,6 @@ public class TestDataBase {
 
         // Todas as mensagens da dataBase (teste do método printAllMessages)
         System.out.println("\n-- Todas as mensagens --");
-        db.printAllMessages();
+        db.printAllData();
     }
 }
