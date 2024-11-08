@@ -8,7 +8,6 @@ public class TestConditionalGet {
         DataBase db = new DataBase();
         db.Database();
 
-        // Initial data setup
         db.put("key1", "Dados chave 1".getBytes(StandardCharsets.UTF_8));
         db.put("keyCond", "Valor Inicial".getBytes(StandardCharsets.UTF_8));
         db.put("key2", "Dados chave 2".getBytes(StandardCharsets.UTF_8));
@@ -21,7 +20,6 @@ public class TestConditionalGet {
 
         System.out.println("-- Começar o teste com a condição a chegar dps do pedido --");
 
-        // Create a thread that waits for a condition to be met on "keyCond"
         Thread getWhenThread = new Thread(() -> {
             try {
                 System.out.println("Thread 1: A aguardar que a condição chegue...");
@@ -33,10 +31,9 @@ public class TestConditionalGet {
             }
         });
 
-        // Create another thread that will satisfy the condition by updating "keyCond" after a delay
         Thread putThread = new Thread(() -> {
             try {
-                Thread.sleep(3000);  // Wait for 3 seconds before satisfying the condition
+                Thread.sleep(3000);  
                 System.out.println("Thread 2: Atualizar a keyCond para receber a mensagem...");
                 db.put("keyCond", "aprovado".getBytes(StandardCharsets.UTF_8));
                 System.out.println("Thread 2: keyCond atualizada para 'aprovado'");
@@ -45,11 +42,9 @@ public class TestConditionalGet {
             }
         });
 
-        // Start both threads
         getWhenThread.start();
         putThread.start();
 
-        // Wait for both threads to finish
         try {
             getWhenThread.join();
             putThread.join();
