@@ -3,18 +3,19 @@ package messagesFormat;
 import java.io.DataOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.*;
 
 public class MultiGetMsg implements MsgInterfaces.CliToServMsg {
     private static final byte OPCODE = 4; 
     private Set<String> keySet;
 
-    public LoginMsg() {}
+    public MultiGetMsg() {}
 
-    public LoginMsg(Set<String> keySet) {
+    public MultiGetMsg(Set<String> keySet) {
         this.keySet = keySet;
     }
 
-    public LoginMsg(GetMsg msg) {
+    public MultiGetMsg(MultiGetMsg msg) {
         this.keySet = msg.keySet;
     }
 
@@ -51,7 +52,7 @@ public class MultiGetMsg implements MsgInterfaces.CliToServMsg {
         return this.keySet;
     }
 
-    private void setKeySet(String keySet) {
+    private void setKeySet(Set<String> keySet) {
         this.keySet = keySet;
     }
 

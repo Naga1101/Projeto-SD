@@ -3,20 +3,21 @@ package messagesFormat;
 import java.io.DataOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.*;
 
 public class MultiGetReply implements MsgInterfaces.ServToCliMsg {
     private static final byte OPCODE = 4; 
     private Map<String, byte[]> reply;
     private String info; // error info?
 
-    public AuthReply() {}
+    public MultiGetReply() {}
 
-    public AuthReply(Map<String, byte[]> reply, String info) {
+    public MultiGetReply(Map<String, byte[]> reply, String info) {
         this.reply = reply;
         this.info = info;
     }
 
-    public AuthReply(AuthReply msg) {
+    public MultiGetReply(MultiGetReply msg) {
         this.reply = msg.reply;
         this.info = msg.info;
     }
@@ -90,8 +91,8 @@ public class MultiGetReply implements MsgInterfaces.ServToCliMsg {
     }
 
     @Override
-    public AuthReply clone() {
-        return new MultiGetReply(this);
+    public MultiGetReply clone() {
+        return new MultiGetReply(this.clone());
     }
 
     @Override

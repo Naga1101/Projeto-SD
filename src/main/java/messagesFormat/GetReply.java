@@ -3,20 +3,21 @@ package messagesFormat;
 import java.io.DataOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class GetReply implements MsgInterfaces.ServToCliMsg {
     private static final byte OPCODE = 2; 
     private byte[] reply;
     private String info; // error info?
 
-    public AuthReply() {}
+    public GetReply() {}
 
-    public AuthReply(byte[] reply, String info) {
+    public GetReply(byte[] reply, String info) {
         this.reply = reply;
         this.info = info;
     }
 
-    public AuthReply(AuthReply msg) {
+    public GetReply(GetReply msg) {
         this.reply = msg.reply;
         this.info = msg.info;
     }
@@ -24,27 +25,46 @@ public class GetReply implements MsgInterfaces.ServToCliMsg {
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
-        dos.writeInt(reply);
-        dos.writeUTF(info);   
+
+        if (reply != null) {
+            dos.writeInt(reply.length);  // Write the length of reply
+            dos.write(reply);            // Write the reply byte array
+        } else {
+            dos.writeInt(-1);            // Indicate a null reply
+        }
+
+        dos.writeUTF(info);
     }
 
     @Override
     public void serializeWithoutFlush(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
-        dos.writeInt(reply); 
-        dos.writeUTF(info);  
+
+        if (reply != null) {
+            dos.writeInt(reply.length);
+            dos.write(reply);
+        } else {
+            dos.writeInt(-1);
+        }
+
+        dos.writeUTF(info);
     }
 
     @Override
     public void deserialize(DataInputStream dis) throws IOException {
-        this.reply = dis.readInt();  
-        this.info = dis.readUTF();    
+        int length = dis.readInt();
+        if (length >= 0) {
+            reply = new byte[length];
+            dis.readFully(reply);
+        } else {
+            reply = null;  // Handle null case
+        }
+
+        this.info = dis.readUTF();
     }
 
-    // Getters and Setters
-
-    public int getReply() {
-        return this.reply;
+    public byte[] getReply() {
+        return reply != null ? Arrays.copyOf(reply, reply.length) : null;
     }
 
     public String getInfo() {
@@ -52,7 +72,7 @@ public class GetReply implements MsgInterfaces.ServToCliMsg {
     }
 
     private void setReply(byte[] reply) {
-        this.reply = reply;
+        this.reply = reply != null ? Arrays.copyOf(reply, reply.length) : null;
     }
 
     private void setInfo(String info) {
@@ -61,16 +81,16 @@ public class GetReply implements MsgInterfaces.ServToCliMsg {
 
     @Override
     public int getRequestN() {
-        return -1; 
+        return -1;
     }
 
     @Override
     public String toString() {
-        return "AuthReply{reply=" + reply + ", info='" + info + "'}";
+        return "GetReply{reply=" + Arrays.toString(reply) + ", info='" + info + "'}";
     }
 
     @Override
-    public AuthReply clone() {
+    public GetReply clone() {
         return new GetReply(this);
     }
 
