@@ -4,41 +4,42 @@ import java.io.DataOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-public class AuthReply implements MsgInterfaces.ServToCliMsg {
-    private static final byte OPCODE = 1; 
+public class MultiPutReply implements MsgInterfaces.ServToCliMsg {
+    private static final byte OPCODE = 3;
     private int reply;
-    private String info; // error info?
+    private String info;
 
-    public AuthReply() {}
 
-    public AuthReply(int reply, String info) {
+    public MultiPutReply() {}
+
+    public MultiPutReply(int reply, String info) {
         this.reply = reply;
         this.info = info;
     }
 
-    public AuthReply(AuthReply msg) {
-        this.reply = msg.reply;
-        this.info = msg.info;
-    }
+     public MultiPutReply(MultiPutReply msg) {
+     this.reply = msg.reply;
+     this.info = msg.info;
+     }
 
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
         dos.writeInt(reply);
-        dos.writeUTF(info);   
+        dos.writeUTF(info);
     }
 
     @Override
     public void serializeWithoutFlush(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
-        dos.writeInt(reply); 
-        dos.writeUTF(info);  
+        dos.writeInt(reply);
+        dos.writeUTF(info);
     }
 
     @Override
     public void deserialize(DataInputStream dis) throws IOException {
-        this.reply = dis.readInt();  
-        this.info = dis.readUTF();    
+        this.reply = dis.readInt();
+        this.info = dis.readUTF();
     }
 
     // Getters and Setters
@@ -61,7 +62,7 @@ public class AuthReply implements MsgInterfaces.ServToCliMsg {
 
     @Override
     public int getRequestN() {
-        return -1; 
+        return -1;
     }
 
     @Override
