@@ -15,6 +15,34 @@ public class ClientMenus {
         System.out.println("3 - Sair");
     }
 
+    public void menuSelectOption(){
+        System.out.println("\n");
+        System.out.println("----------- SELECCIONE A OPERAÇÃO -----------");
+        System.out.println("\n");
+        System.out.println("1 - Get");
+        System.out.println("2 - Pull");
+        System.out.println("3 - Sair");
+    }
+
+    public void menuGet(){
+        System.out.println("\n");
+        System.out.println("----------- COMANDOS GET -----------");
+        System.out.println("\n");
+        System.out.println("1 - get");
+        System.out.println("2 - multiGet");
+        System.out.println("3 - getWhen");
+        System.out.println("4 - Voltar atrás");
+    }
+
+    public void menuPut(){
+        System.out.println("\n");
+        System.out.println("----------- COMANDOS PUT -----------");
+        System.out.println("\n");
+        System.out.println("1 - put");
+        System.out.println("2 - multiPut");
+        System.out.println("3 - Voltar atrás");
+    }
+
     public void printRegisterUserReply(int reply , String user) {
         switch (reply) {
             case 0:
