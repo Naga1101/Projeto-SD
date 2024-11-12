@@ -35,16 +35,18 @@ public class DataBase {
         lockDataBase.lock();
         try {
             dataBase.put(key, data);
-    
-            lockWaitingCond.lock();
-            try {
-                CondKey cond = waitingCond.get(key);
-                if (cond != null && Arrays.equals(data, cond.getData())) {
-                    cond.setMet();
-                    conditionMet.signalAll();  // Notify waiting threads
+
+            if(!waitingCond.isEmpty()){
+                lockWaitingCond.lock();
+                try {
+                    CondKey cond = waitingCond.get(key);
+                    if (cond != null && Arrays.equals(data, cond.getData())) {
+                        cond.setMet();
+                        conditionMet.signalAll();  // Notify waiting threads
+                    }
+                } finally {
+                    lockWaitingCond.unlock();
                 }
-            } finally {
-                lockWaitingCond.unlock();
             }
         } finally {
             lockDataBase.unlock();
@@ -100,11 +102,14 @@ public class DataBase {
     }
 
     public byte[] getWhen(String key, String keyCond, byte[] valueCond) throws InterruptedException {
-        byte[] currentCondValue = get(keyCond); 
+        //byte[] currentCondValue = get(keyCond);
         
-        if (currentCondValue != null && Arrays.equals(currentCondValue, valueCond)) {
-            return get(key);
-        }
+        //if (currentCondValue != null && Arrays.equals(currentCondValue, valueCond)) {
+        //    return get(key);
+        //}
+
+        byte[] wantedData = verifyIfCondAlreadyMet(key, keyCond, valueCond);
+        if(wantedData != null) return wantedData;
     
         CondKey newCond = new CondKey(valueCond);
         waitingCond.put(keyCond, newCond);  
@@ -119,6 +124,21 @@ public class DataBase {
         } finally {
             lockWaitingCond.unlock();
         }
+    }
+
+    private byte[] verifyIfCondAlreadyMet(String key, String keyCond, byte[] valueCond){
+        byte[] currentCondValue = null;
+        byte[] wantedData = null;
+        lockDataBase.lock();
+        try {
+            currentCondValue = dataBase.get(keyCond);
+            if(currentCondValue != null && Arrays.equals(currentCondValue, valueCond)){
+                wantedData = dataBase.get(key);
+            }
+        } finally {
+            lockDataBase.unlock();
+        }
+        return wantedData;
     }
 
     public void printAllData() {
