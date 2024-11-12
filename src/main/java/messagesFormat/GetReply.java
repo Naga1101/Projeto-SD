@@ -5,8 +5,10 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
+import enums.Enums.command;
+
 public class GetReply implements MsgInterfaces.ServToCliMsg {
-    private static final byte OPCODE = 2; 
+    private static final byte OPCODE = (byte) command.GET.ordinal();
     private byte[] reply;
     private String info; // error info?
 

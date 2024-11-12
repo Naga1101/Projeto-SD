@@ -4,8 +4,10 @@ import java.io.DataOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 
+import enums.Enums.command;
+
 public class GetMsg implements MsgInterfaces.CliToServMsg {
-    private static final byte OPCODE = 2; 
+    private static final byte OPCODE = (byte) command.GET.ordinal(); 
     private String key;
 
     public GetMsg() {}

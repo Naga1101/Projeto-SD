@@ -4,8 +4,10 @@ import java.io.DataOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 
+import enums.Enums.command;
+
 public class PutReply implements MsgInterfaces.ServToCliMsg {
-    private static final byte OPCODE = 1;
+    private static final byte OPCODE = (byte) command.PUT.ordinal(); 
     private int reply;
     private String info;
 

@@ -4,8 +4,10 @@ import java.io.DataOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 
+import enums.Enums.autenticacao;
+
 public class LoginMsg implements MsgInterfaces.CliToServMsg {
-    private static final byte OPCODE = 1; 
+    private static final byte OPCODE = (byte) autenticacao.LOGIN.ordinal();
     private String username;
     private String password;
 

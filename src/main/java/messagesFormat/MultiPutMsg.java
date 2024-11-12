@@ -5,8 +5,10 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.*;
 
+import enums.Enums.command;
+
 public class MultiPutMsg implements MsgInterfaces.CliToServMsg {
-    private static final byte OPCODE = 3;
+    private static final byte OPCODE = (byte) command.MULTIPUT.ordinal(); 
     private Map<String, byte[]> pairs;
 
     public MultiPutMsg() {

@@ -5,8 +5,10 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.*;
 
+import enums.Enums.command;
+
 public class GetWhenReply implements MsgInterfaces.ServToCliMsg {
-    private static final byte OPCODE = 5;
+    private static final byte OPCODE = (byte) command.GETWHEN.ordinal();
     private byte[] reply;
     private String info;
 

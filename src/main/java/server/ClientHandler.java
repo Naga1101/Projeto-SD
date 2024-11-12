@@ -4,9 +4,8 @@ import java.io.*;
 import java.net.*;
 import java.util.concurrent.*;
 
-import messagesFormat.AuthReply;
-import messagesFormat.LoginMsg;
-import messagesFormat.RegisterMsg;
+import messagesFormat.*;
+import enums.*;
 
 public class ClientHandler implements Runnable {
     private Socket clientSocket;

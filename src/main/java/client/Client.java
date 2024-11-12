@@ -4,9 +4,9 @@ import java.io.*;
 import java.net.*;
 import java.util.Scanner;
 
-import messagesFormat.AuthReply;
-import messagesFormat.LoginMsg;
-import messagesFormat.RegisterMsg;
+import messagesFormat.*;
+import enums.*;
+import enums.Enums.autenticacao;
 
 import static client.ClientMenus.*;
 
@@ -72,7 +72,7 @@ public class Client {
                 int option = scanner.nextInt();
                 scanner.nextLine();
 
-                if(option == 1){
+                if(option == autenticacao.LOGIN.ordinal()){
                     System.out.print("Escreva o seu username: ");
                     name = scanner.nextLine();
                     System.out.print("Escreva a sua password: ");
@@ -94,7 +94,7 @@ public class Client {
                     if(reply == 2) loggedIn = true;
                     
                 }
-                else if(option == 2){
+                else if(option == autenticacao.REGISTER.ordinal()){
                     System.out.print("Escreva o seu username: ");
                     name = scanner.nextLine();
                     System.out.print("Escreva a sua password: ");

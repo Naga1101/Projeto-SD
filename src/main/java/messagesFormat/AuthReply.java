@@ -4,8 +4,10 @@ import java.io.DataOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 
+import enums.Enums.autenticacao;
+
 public class AuthReply implements MsgInterfaces.ServToCliMsg {
-    private static final byte OPCODE = 1; 
+    private static final byte OPCODE = (byte) autenticacao.AUTHREPLY.ordinal(); 
     private int reply;
     private String info; // error info?
 
