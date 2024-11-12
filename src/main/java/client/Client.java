@@ -5,8 +5,7 @@ import java.net.*;
 import java.util.Scanner;
 
 import messagesFormat.*;
-import enums.*;
-import enums.Enums.autenticacao;
+import enums.Enums.*;
 
 import static client.ClientMenus.*;
 

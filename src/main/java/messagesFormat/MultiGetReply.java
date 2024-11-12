@@ -5,10 +5,10 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.*;
 
-import enums.Enums.command;
+import enums.Enums.getCommand;
 
 public class MultiGetReply implements MsgInterfaces.ServToCliMsg {
-    private static final byte OPCODE = (byte) command.MULTIGET.ordinal(); 
+    private static final byte OPCODE = (byte) getCommand.MULTIGET.ordinal(); 
     private Map<String, byte[]> reply;
     private String info; // error info?
 

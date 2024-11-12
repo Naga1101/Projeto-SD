@@ -5,10 +5,10 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.*;
 
-import enums.Enums.command;
+import enums.Enums.getCommand;
 
 public class MultiGetMsg implements MsgInterfaces.CliToServMsg {
-    private static final byte OPCODE = (byte) command.MULTIGET.ordinal(); 
+    private static final byte OPCODE = (byte) getCommand.MULTIGET.ordinal(); 
     private Set<String> keySet;
 
     public MultiGetMsg() {}

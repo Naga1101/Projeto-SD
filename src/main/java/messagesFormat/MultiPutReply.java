@@ -4,10 +4,10 @@ import java.io.DataOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-import enums.Enums.command;
+import enums.Enums.putCommand;
 
 public class MultiPutReply implements MsgInterfaces.ServToCliMsg {
-    private static final byte OPCODE = (byte) command.MULTIPUT.ordinal(); 
+    private static final byte OPCODE = (byte) putCommand.MULTIPUT.ordinal(); 
     private int reply;
     private String info;
 

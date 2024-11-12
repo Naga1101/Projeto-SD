@@ -5,7 +5,7 @@ import java.net.*;
 import java.util.concurrent.*;
 
 import messagesFormat.*;
-import enums.*;
+import enums.Enums.autenticacao;
 
 public class ClientHandler implements Runnable {
     private Socket clientSocket;
@@ -51,10 +51,20 @@ public class ClientHandler implements Runnable {
         String password;
         try {
             while(!loggedIn){
-                byte opcode = in.readByte();
+                byte opcodeByte = in.readByte();
                 activeTimer.resetCountdown();
+
+                // Converte o código numérico para o enum autenticacao
+                autenticacao opcode;
+                try {
+                    opcode = autenticacao.fromCode(opcodeByte);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Opcode inválido recebido: " + opcodeByte);
+                    continue; // Ignora e espera o próximo opcode válido
+                }
+
                 switch(opcode){
-					case 1:
+					case LOGIN:
 						LoginMsg logRequest = new LoginMsg();
 						logRequest.deserialize(in);
 
@@ -71,7 +81,7 @@ public class ClientHandler implements Runnable {
                         }
 
 						break;
-					case 2:
+					case REGISTER:
 						RegisterMsg regRequest = new RegisterMsg();
 						regRequest.deserialize(in);
 
