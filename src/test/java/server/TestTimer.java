@@ -1,15 +1,14 @@
 package server;
 
-import server.Timer;
-
 public class TestTimer {
     private static final int TIMEOUT = 30000; 
     public static void main(String[] args) {
         // Define what happens when the timer times out
+        UsersAuthenticator test = new UsersAuthenticator();
         Runnable onTimeout = () -> System.out.println("Timer finished!");
 
         // Create a Timer instance with the specified onTimeout action
-        Timer timer = new Timer(onTimeout);
+        Timer timer = new Timer(onTimeout, test);
 
         System.out.println("Começar o timer...");
         timer.startCountdown();

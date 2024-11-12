@@ -3,10 +3,8 @@ package server;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -102,12 +100,6 @@ public class DataBase {
     }
 
     public byte[] getWhen(String key, String keyCond, byte[] valueCond) throws InterruptedException {
-        //byte[] currentCondValue = get(keyCond);
-        
-        //if (currentCondValue != null && Arrays.equals(currentCondValue, valueCond)) {
-        //    return get(key);
-        //}
-
         byte[] wantedData = verifyIfCondAlreadyMet(key, keyCond, valueCond);
         if(wantedData != null) return wantedData;
     
@@ -119,9 +111,9 @@ public class DataBase {
             while (!newCond.isMet()) {  
                 conditionMet.await();
             }
-            waitingCond.remove(keyCond);
             return get(key);
         } finally {
+            waitingCond.remove(keyCond);
             lockWaitingCond.unlock();
         }
     }
