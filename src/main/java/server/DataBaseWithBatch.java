@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class DataBaseWithBatch {
     // Main data
@@ -52,14 +54,11 @@ public class DataBaseWithBatch {
             }
 
             if (batch.size() >= batchSize) {
-                //needFlush = true;  
-                lockBatch.unlock(); 
+                //needFlush = true;
                 flushBatch();
             }
         } finally {
-            if (lockBatch.isHeldByCurrentThread()) { // podemos usar o isHeldByCurrentThread()
-                lockBatch.unlock(); 
-            }
+            lockBatch.unlock();
         }
         /**
         if (needFlush) {
@@ -69,21 +68,19 @@ public class DataBaseWithBatch {
 
     public void multiPut(Map<String, byte[]> pairs){
         if(pairs.size() > batchSize){
-            flushBatch(pairs);
+            flushBatch();
+            flushBiggerBatch(pairs);
         }
 
         lockBatch.lock();
         try{
             batch.putAll(pairs);
             if (batch.size() >= batchSize) {
-                //needFlush = true;  
-                lockBatch.unlock(); 
+                //needFlush = true;
                 flushBatch();
             }
         } finally {
-            if (lockBatch.isHeldByCurrentThread()) { // podemos usar o isHeldByCurrentThread()
-                lockBatch.unlock(); 
-            }
+            lockBatch.unlock();
         }
     }
 
@@ -163,8 +160,6 @@ public class DataBaseWithBatch {
         return resultMap;
     }
 
-
-
     public byte[] getWhen(String key, String keyCond, byte[] valueCond) throws InterruptedException {
         byte[] wantedData = verifyIfCondAlreadyMet(key, keyCond, valueCond);
         if(wantedData != null) return wantedData;
@@ -215,11 +210,11 @@ public class DataBaseWithBatch {
     }
 
 
-
     public void flushBatch(){
+        System.out.println("Flushing batch");
         lockBatch.lock();
         try {
-            if(batch.size() < batchSize){  // pode acontecer de ter chaamdo o flushBatch mas já alguem ter dado flush antes de adquirir o lock
+            if(batch.size() < batchSize){  // pode acontecer de ter chamado o flushBatch mas já alguem ter dado flush antes de adquirir o lock
                 return;
             }
 
@@ -235,7 +230,8 @@ public class DataBaseWithBatch {
         }
     }
 
-    public void flushBatch(Map<String, byte[]> pairs){
+    public void flushBiggerBatch(Map<String, byte[]> pairs){
+        System.out.println("Flushing batch");
         lockDataBase.lock();
         try{
             dataBase.putAll(pairs);
@@ -255,10 +251,14 @@ public class DataBaseWithBatch {
         
         lockDataBase.lock();
         try {
-            dataBase.forEach((key, value) -> {
-                String data = new String(value, StandardCharsets.UTF_8);
-                System.out.println("ID: " + key + " - data: " + data);
-            });
+            String timestamp = getCurrentTimestamp();
+            if(!dataBase.isEmpty()) {
+                dataBase.forEach((key, value) -> {
+                    String data = new String(value, StandardCharsets.UTF_8);
+                    System.out.println(timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | ID: " + key + " - data: " + data);
+                });
+            }
+            else System.out.println(timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | Empty ");
         } finally {
             lockDataBase.unlock();
         }
@@ -271,12 +271,17 @@ public class DataBaseWithBatch {
         
         lockBatch.lock();
         try {
+            String timestamp = getCurrentTimestamp();
             batch.forEach((key, value) -> {
                 String data = new String(value, StandardCharsets.UTF_8);
-                System.out.println("ID: " + key + " - data: " + data);
+                System.out.println(timestamp + " | Batch Content: " + " | Size of batch: " + batch.size() + " | ID: " + key + " - data: " + data);
             });
         } finally {
             lockBatch.unlock();
         }
+    }
+
+    public String getCurrentTimestamp() {
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss.SSS"));
     }
 }
