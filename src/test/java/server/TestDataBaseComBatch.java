@@ -9,6 +9,8 @@ import static client.FileParser.parseFileToMap;
 
 public class TestDataBaseComBatch {
     public static void main(String[] args) throws IOException {
+        Logs logFile = new Logs();
+
         Map<String, byte[]> test1 = parseFileToMap("test/files/test_file1.txt");
         Map<String, byte[]> test2 = parseFileToMap("test/files/test_file2.txt");
         Map<String, byte[]> test3 = parseFileToMap("test/files/test_file3.txt");
@@ -20,7 +22,7 @@ public class TestDataBaseComBatch {
 
         List<Map<String, byte[]>> testMaps = Arrays.asList(test1, test2, test3, test4, test5, test6, test7, test8);
 
-        DataBaseWithBatch db = new DataBaseWithBatch(20);
+        DataBaseWithBatch db = new DataBaseWithBatch(logFile, 20);
 
         List<Thread> threads = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
@@ -128,17 +130,17 @@ public class TestDataBaseComBatch {
             String timestamp = db.getCurrentTimestamp();
             System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | Before multiPut");
             System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | Batch content: ");
-            db.printAllDataBatch();
+            //db.printAllDataBatch();
             System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | Data content: ");
-            db.printAllDataMain();
+            //db.printAllDataMain();
             Map<String, byte[]> randomPairs = getRandomPairs(10);
             System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | - Executing multiPut");
             db.multiPut(randomPairs);
             System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | After multiPut");
             System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | Batch content: ");
-            db.printAllDataBatch();
+            //db.printAllDataBatch();
             System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | Data content: ");
-            db.printAllDataMain();
+            //db.printAllDataMain();
         }
 
         // Utility methods for generating random keys and values
@@ -169,3 +171,11 @@ public class TestDataBaseComBatch {
         }
     }
 }
+
+/**
+ * Para compilar e correr estes testes é preciso utilizar estes comandos por ordem no terminal aberto na pasta src
+ * javac -d out -sourcepath main/java main/java/server/*.java
+ * javac -d out -sourcepath main/java main/java/client/*.java
+ * javac -d out -cp out -sourcepath test/java test/java/server/TestDataBaseComBatch.java 
+ * java -cp out server.TestDataBaseComBatch
+ */

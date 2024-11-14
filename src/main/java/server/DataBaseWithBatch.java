@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class DataBaseWithBatch {
+    Logs sessionFile;
     // Main data
     private static HashMap<String, byte[]> dataBase;
     private final ReentrantLock lockDataBase = new ReentrantLock();
@@ -26,7 +27,8 @@ public class DataBaseWithBatch {
     private final ReentrantLock lockWaitingCond = new ReentrantLock();
     private final Condition conditionMet = lockWaitingCond.newCondition();
 
-    public DataBaseWithBatch(int batchSize) {
+    public DataBaseWithBatch(Logs sessionFile, int batchSize) {
+        this.sessionFile = sessionFile;
         this.batchSize = batchSize;
         dataBase = new HashMap<>();
         batch = new HashMap<>();
@@ -35,9 +37,18 @@ public class DataBaseWithBatch {
     // puts na batch e caso necessário chamam o flush
 
     public void put(String key, byte[] data){
-        //boolean needFlush = false;
+        String timestamp;
         lockBatch.lock();
         try {
+            timestamp = getCurrentTimestamp();
+            String dataS = new String(data, StandardCharsets.UTF_8);
+            String message = timestamp + " | Put " + " | ID: " + key + " | value: " + dataS;
+            sessionFile.log(message);
+            message = timestamp + " | Data during Put";
+            sessionFile.log(message);
+            logAllDataBatch();
+            logAllDataMain();
+
             batch.put(key, data);
 
             if(!waitingCond.isEmpty()){
@@ -53,27 +64,37 @@ public class DataBaseWithBatch {
                 }
             }
 
+            message = timestamp + " | Data after Put";
+            sessionFile.log(message);
+            logAllDataBatch();
+            logAllDataMain();
+
             if (batch.size() >= batchSize) {
-                //needFlush = true;
                 flushBatch();
             }
         } finally {
             lockBatch.unlock();
         }
-        /**
-        if (needFlush) {
-            flushBatch(); 
-        } */
     }
 
     public void multiPut(Map<String, byte[]> pairs){
-        if(pairs.size() > batchSize){
-            flushBatch();
-            flushBiggerBatch(pairs);
-        }
-
+        String timestamp;
         lockBatch.lock();
         try{
+            timestamp = getCurrentTimestamp();
+            String message = timestamp + " | MultiPut " + " | size of multiPut: " + pairs.size();
+            sessionFile.log(message);
+            message = timestamp + " | Data during MultiPut";
+            sessionFile.log(message);
+            logAllDataBatch();
+            logAllDataMain();
+
+            if(pairs.size() > batchSize){
+                flushBatch();
+                flushBiggerBatch(pairs);
+                return;
+            }
+
             batch.putAll(pairs);
             if (batch.size() >= batchSize) {
                 //needFlush = true;
@@ -119,27 +140,55 @@ public class DataBaseWithBatch {
     }
 
     public byte[] get(String key){
+        String timestamp;
         byte[] data = null;
         lockBatch.lock();
         try{
+            timestamp = getCurrentTimestamp();
+            String message = timestamp + " | Get ";
+            sessionFile.log(message);
+            message = timestamp + " | Data during Get";
+            sessionFile.log(message);
+            logAllDataBatch();
+            logAllDataMain();
+
             data = batch.get(key);
-            if(data != null) return data;
+
+            if(data != null) {
+                String dataS = new String(data, StandardCharsets.UTF_8);
+                message = timestamp + " | Get result from batch " + " | ID: " + key + " | value: " + dataS;
+                sessionFile.log(message);
+                return data;
+            }
 
             data = getMain(key);
         } finally {
             lockBatch.unlock();
         }
 
+        String dataS = new String(data, StandardCharsets.UTF_8);
+        String message = timestamp + " | Get result from main " + " | ID: " + key + " | value: " + dataS;
+        sessionFile.log(message);
+
         return data;
     }
 
     public Map<String, byte[]>  multiGetLockToCopy(Set<String> keys){
+        String timestamp;
         HashMap<String, byte[]> batchCopy;
         HashMap<String, byte[]> dataBaseCopy;
         Map<String, byte[]>  resultMap = new HashMap<>();
-        
+
         lockBatch.lock();
         try {
+            timestamp = getCurrentTimestamp();
+            String message = timestamp + " | MultiGet " + " | nº of keys: " + keys.size();
+            sessionFile.log(message);
+            message = timestamp + " | Data during MultiGet";
+            sessionFile.log(message);
+            logAllDataBatch();
+            logAllDataMain();
+
             batchCopy = new HashMap<>(batch);
 
             lockDataBase.lock();
@@ -153,8 +202,14 @@ public class DataBaseWithBatch {
         }
 
         for (String key : keys) {
+            String message = timestamp + " | MultiGet " + " | Key: " + " | ID: " + key ;
+            sessionFile.log(message);
             byte[] data = batchCopy.get(key);
-            resultMap.put(key, data != null ? data : dataBaseCopy.get(key));
+            data = data != null ? data : dataBaseCopy.get(key);
+            resultMap.put(key, data);
+            String dataS = new String(data, StandardCharsets.UTF_8);
+            message = timestamp + " | MultiGet result: " + " | ID: " + key + " - data: " + dataS;
+            sessionFile.log(message);
         }        
         
         return resultMap;
@@ -214,6 +269,14 @@ public class DataBaseWithBatch {
         System.out.println("Flushing batch");
         lockBatch.lock();
         try {
+            String timestamp = getCurrentTimestamp();
+            String message = timestamp + " | Normal Flush ";
+            sessionFile.log(message);
+            message = timestamp + " | Data before flush";
+            sessionFile.log(message);
+            logAllDataBatch();
+            logAllDataMain();
+
             if(batch.size() < batchSize){  // pode acontecer de ter chamado o flushBatch mas já alguem ter dado flush antes de adquirir o lock
                 return;
             }
@@ -225,6 +288,11 @@ public class DataBaseWithBatch {
             } finally {
                 lockDataBase.unlock();
             }
+
+            message = timestamp + " | Data after flush";
+            sessionFile.log(message);
+            logAllDataBatch();
+            logAllDataMain();
         } finally {
             lockBatch.unlock();
         }
@@ -234,7 +302,19 @@ public class DataBaseWithBatch {
         System.out.println("Flushing batch");
         lockDataBase.lock();
         try{
+            String timestamp = getCurrentTimestamp();
+            String message = timestamp + " | Forced big Flush ";
+            sessionFile.log(message);
+            message = timestamp + " | Data before flush";
+            sessionFile.log(message);
+            logAllDataBatch();
+            logAllDataMain();
+
             dataBase.putAll(pairs);
+
+            sessionFile.log(message);
+            message = timestamp + " | Data before flush";
+            sessionFile.log(message);
         } finally {
             lockDataBase.unlock();
         }
@@ -244,7 +324,7 @@ public class DataBaseWithBatch {
 
     // prints 
 
-    public void printAllDataMain() {
+    public void logAllDataMain() {
         if (dataBase == null) {
             throw new IllegalStateException("Database not initialized");
         }
@@ -255,16 +335,22 @@ public class DataBaseWithBatch {
             if(!dataBase.isEmpty()) {
                 dataBase.forEach((key, value) -> {
                     String data = new String(value, StandardCharsets.UTF_8);
-                    System.out.println(timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | ID: " + key + " - data: " + data);
+                    String message = timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | ID: " + key + " - data: " + data;
+                    System.out.println(message);
+                    sessionFile.log(message);
                 });
             }
-            else System.out.println(timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | Empty ");
+            else {
+                String message = timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | Empty ";
+                System.out.println(message);
+                sessionFile.log(message);
+            }
         } finally {
             lockDataBase.unlock();
         }
     }
 
-    public void printAllDataBatch() {
+    public void logAllDataBatch() {
         if (batch == null) {
             throw new IllegalStateException("Database not initialized");
         }
@@ -272,10 +358,19 @@ public class DataBaseWithBatch {
         lockBatch.lock();
         try {
             String timestamp = getCurrentTimestamp();
-            batch.forEach((key, value) -> {
-                String data = new String(value, StandardCharsets.UTF_8);
-                System.out.println(timestamp + " | Batch Content: " + " | Size of batch: " + batch.size() + " | ID: " + key + " - data: " + data);
-            });
+            if(!batch.isEmpty()) {
+                batch.forEach((key, value) -> {
+                    String data = new String(value, StandardCharsets.UTF_8);
+                    String message = timestamp + " | Batch Content: " + " | Size of batch: " + batch.size() + " | ID: " + key + " - data: " + data;
+                    System.out.println(message);
+                    sessionFile.log(message);
+                });
+            }
+            else {
+                String message = timestamp + " | Batch Content: " + " | Size of batch: " + batch.size() + " | Empty ";
+                System.out.println(message);
+                sessionFile.log(message);
+            }
         } finally {
             lockBatch.unlock();
         }
