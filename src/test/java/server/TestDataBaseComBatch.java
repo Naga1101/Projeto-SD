@@ -11,30 +11,30 @@ public class TestDataBaseComBatch {
     public static void main(String[] args) throws IOException {
         Logs logFile = new Logs();
 
-        Map<String, byte[]> test1 = parseFileToMap("test/files/test_file1.txt");
-        Map<String, byte[]> test2 = parseFileToMap("test/files/test_file2.txt");
-        Map<String, byte[]> test3 = parseFileToMap("test/files/test_file3.txt");
-        Map<String, byte[]> test4 = parseFileToMap("test/files/test_file4.txt");
-        Map<String, byte[]> test5 = parseFileToMap("test/files/test_file5.txt");
-        Map<String, byte[]> test6 = parseFileToMap("test/files/test_file6.txt");
-        Map<String, byte[]> test7 = parseFileToMap("test/files/test_file7.txt");
-        Map<String, byte[]> test8 = parseFileToMap("test/files/test_file8.txt");
-
-        List<Map<String, byte[]>> testMaps = Arrays.asList(test1, test2, test3, test4, test5, test6, test7, test8);
-
-        DataBaseWithBatch db = new DataBaseWithBatch(logFile, 20);
-
-        List<Thread> threads = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            Thread thread = new Thread(new DatabaseOperationTask(db, testMaps));
-            threads.add(thread);
+        List<Map<String, byte[]>> testMaps = new ArrayList<>();
+        for (int i = 1; i <= 15; i++) {
+            testMaps.add(parseFileToMap("test/files/test_file" + i + ".txt"));
         }
 
-        // Start and time the threads
+        DataBaseWithBatch db = new DataBaseWithBatch(logFile, 85); 
+        /** BatchSize dif time
+         *  100: 1º- 540, 2º - 759, 3º- 559, 4º- 515, 5º- 643
+         *  75: 1º- 548, 2º - 771, 3º- 582, 4º- 628, 5º- 639
+         *  50: 1º- 693, 2º - 711, 3º- 545, 4º- 664, 5º- 617
+         */
+
+        List<Thread> threads = new ArrayList<>();
+
+        for (int i = 0; i < 3; i++) {
+            threads.add(new Thread(new DatabaseOperationTask(db, testMaps, "doPut")));
+            threads.add(new Thread(new DatabaseOperationTask(db, testMaps, "doMultiPut")));
+            threads.add(new Thread(new DatabaseOperationTask(db, testMaps, "doGet")));
+            threads.add(new Thread(new DatabaseOperationTask(db, testMaps, "doMultiGet")));
+        }
+
         long startTime = System.currentTimeMillis();
         threads.forEach(Thread::start);
 
-        // Wait for all threads to finish
         for (Thread thread : threads) {
             try {
                 thread.join();
@@ -46,35 +46,28 @@ public class TestDataBaseComBatch {
         System.out.println("Total execution time: " + (endTime - startTime) + " ms");
     }
 
-    // Runnable task that performs random database operations
     public static class DatabaseOperationTask implements Runnable {
         private final DataBaseWithBatch db;
         private final List<Map<String, byte[]>> testMaps;
+        private final String operationType;
 
-        public DatabaseOperationTask(DataBaseWithBatch db, List<Map<String, byte[]>> testMaps) {
+        public DatabaseOperationTask(DataBaseWithBatch db, List<Map<String, byte[]>> testMaps, String operationType) {
             this.db = db;
             this.testMaps = testMaps;
+            this.operationType = operationType;
         }
 
         @Override
         public void run() {
-            ThreadLocalRandom random = ThreadLocalRandom.current();
-
-            for (int i = 0; i < 10; i++) { // Each thread performs 10 operations
-                int operation = random.nextInt(5); // Randomly choose operation type (0-4)
-
-                switch (operation) {
-                    case 0 -> doGet();
-                    //case 1 -> doGetWhen();
-                    case 2 -> doMultiGet();
-                    case 3 -> doPut();
-                    case 4 -> doMultiPut();
+            for (int i = 0; i < 10; i++) { 
+                switch (operationType) {
+                    case "doPut" -> doPut();
+                    case "doMultiPut" -> doMultiPut();
+                    case "doGet" -> doGet();
+                    case "doMultiGet" -> doMultiGet();
                 }
-
-                //System.out.println("Batch content: ");
-                //db.printAllDataBatch();
-                //System.out.println("Data content: ");
-                //db.printAllDataMain();
+                
+                sleepRandomTime();
             }
         }
 
@@ -86,35 +79,24 @@ public class TestDataBaseComBatch {
             if (dataB != null) {
                 String data = new String(dataB, StandardCharsets.UTF_8);
                 System.out.println(timestamp + "Thread " + Thread.currentThread().getId() + " - got data: " + data);
-            }
-            else System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | - no data");
-        }
-
-        private void doGetWhen() {
-            String randomKey = getRandomKey();
-            String conditionKey = getRandomKey();
-            byte[] conditionValue = getRandomValue();
-            System.out.println(" | Thread " + Thread.currentThread().getId() + " | - Executing getWhen for key: " + randomKey + " with condition on " + conditionKey);
-            try {
-                db.getWhen(randomKey, conditionKey, conditionValue);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } else {
+                System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | - no data");
             }
         }
 
         private void doMultiGet() {
             String timestamp = db.getCurrentTimestamp();
-            Set<String> randomKeys = getRandomKeys(5);
+            Set<String> randomKeys = getRandomKeys(5,20);
             System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | - Executing multiGet for keys: " + randomKeys);
             Map<String, byte[]> reply = db.multiGetLockToCopy(randomKeys);
             if (reply != null) {
                 reply.forEach((key, value) -> {
-                    String data = "null";
-                    if(value != null) data = new String(value, StandardCharsets.UTF_8);
+                    String data = value != null ? new String(value, StandardCharsets.UTF_8) : "null";
                     System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | ID: " + key + " - data: " + data);
                 });
+            } else {
+                System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | - No data found");
             }
-            else System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | - No data found");
         }
 
         private void doPut() {
@@ -128,22 +110,23 @@ public class TestDataBaseComBatch {
 
         private void doMultiPut() {
             String timestamp = db.getCurrentTimestamp();
-            System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | Before multiPut");
-            System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | Batch content: ");
-            //db.printAllDataBatch();
-            System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | Data content: ");
-            //db.printAllDataMain();
-            Map<String, byte[]> randomPairs = getRandomPairs(10);
+            Map<String, byte[]> randomMap = testMaps.get(ThreadLocalRandom.current().nextInt(testMaps.size()));
             System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | - Executing multiPut");
-            db.multiPut(randomPairs);
-            System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | After multiPut");
-            System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | Batch content: ");
-            //db.printAllDataBatch();
-            System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | Data content: ");
-            //db.printAllDataMain();
+            db.multiPut(randomMap);
+            System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | - Completed multiPut");
         }
 
-        // Utility methods for generating random keys and values
+        private void sleepRandomTime() {
+            try {
+                int sleepTime = operationType.equals("doMultiGet") 
+                    ? ThreadLocalRandom.current().nextInt(5, 30) 
+                    : ThreadLocalRandom.current().nextInt(1, 5);
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
         private String getRandomKey() {
             int mapIndex = ThreadLocalRandom.current().nextInt(testMaps.size());
             Map<String, byte[]> map = testMaps.get(mapIndex);
@@ -156,19 +139,13 @@ public class TestDataBaseComBatch {
             return map.values().stream().skip(ThreadLocalRandom.current().nextInt(map.size())).findFirst().orElse(null);
         }
 
-        private Set<String> getRandomKeys(int count) {
+        private Set<String> getRandomKeys(int minCount, int maxCount) {
             int mapIndex = ThreadLocalRandom.current().nextInt(testMaps.size());
             Map<String, byte[]> map = testMaps.get(mapIndex);
-            return map.keySet().stream().limit(count).collect(HashSet::new, HashSet::add, HashSet::addAll);
-        }
-
-        private Map<String, byte[]> getRandomPairs(int count) {
-            int mapIndex = ThreadLocalRandom.current().nextInt(testMaps.size());
-            Map<String, byte[]> map = testMaps.get(mapIndex);
-            Map<String, byte[]> result = new HashMap<>();
-            map.entrySet().stream().limit(count).forEach(entry -> result.put(entry.getKey(), entry.getValue()));
-            return result;
-        }
+        
+            int randomCount = ThreadLocalRandom.current().nextInt(minCount, maxCount + 1); // Random count between minCount and maxCount
+            return map.keySet().stream().limit(randomCount).collect(HashSet::new, HashSet::add, HashSet::addAll);
+        }        
     }
 }
 

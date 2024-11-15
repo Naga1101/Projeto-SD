@@ -90,14 +90,13 @@ public class DataBaseWithBatch {
             logAllDataMain();
 
             if(pairs.size() > batchSize){
-                flushBatch();
+                if(!batch.isEmpty()) flushBatch();
                 flushBiggerBatch(pairs);
                 return;
             }
 
             batch.putAll(pairs);
             if (batch.size() >= batchSize) {
-                //needFlush = true;
                 flushBatch();
             }
         } finally {
