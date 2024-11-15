@@ -1,6 +1,8 @@
 package server;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +11,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DataBase {
+    private Logs sessionFile;
 
     /* ConcurrentHashMap > performance do que HashTable
      * Permite valores e keys = null
@@ -23,15 +26,25 @@ public class DataBase {
     private final ReentrantLock lockWaitingCond = new ReentrantLock();
     private final Condition conditionMet = lockWaitingCond.newCondition();
 
-    public void Database() {
+    public DataBase(Logs sessionFile) {
 
         // dataBase = new ConcurrentHashMap<>();
         dataBase = new HashMap<>();
+        this.sessionFile = sessionFile;
     }
 
     public void put(String key, byte[] data) {
+        String timestamp;
         lockDataBase.lock();
         try {
+            timestamp = getCurrentTimestamp();
+            String dataS = new String(data, StandardCharsets.UTF_8);
+            String message = timestamp + " | Put " + " | ID: " + key + " | value: " + dataS;
+            sessionFile.log(message);
+            message = timestamp + " | Data during Put";
+            sessionFile.log(message);
+            logAllDataMain();
+
             dataBase.put(key, data);
 
             if(!waitingCond.isEmpty()){
@@ -46,20 +59,75 @@ public class DataBase {
                     lockWaitingCond.unlock();
                 }
             }
+
+            message = timestamp + " | Data after Put";
+            sessionFile.log(message);
+            logAllDataMain();
+
         } finally {
             lockDataBase.unlock();
         }
+    }
+
+    public void multiPut(Map<String, byte[]> pairs) {
+        String timestamp;
+        lockDataBase.lock();
+        try {
+            timestamp = getCurrentTimestamp();
+            String message = timestamp + " | MultiPut " + " | size of multiPut: " + pairs.size();
+            sessionFile.log(message);
+            message = timestamp + " | Data during MultiPut";
+            sessionFile.log(message);
+            logAllDataMain();
+
+            pairs.forEach((key, value) -> {
+                dataBase.put(key, value);
+    
+                if (!waitingCond.isEmpty()) {
+                    lockWaitingCond.lock();
+                    try {
+                        CondKey cond = waitingCond.get(key);
+                        if (cond != null && Arrays.equals(value, cond.getData())) {
+                            cond.setMet();
+                            conditionMet.signalAll();
+                        }
+                    } finally {
+                        lockWaitingCond.unlock();
+                    }
+                }
+            });
+
+        } finally {
+            lockDataBase.unlock();
+        }
+    
     }
 
     public byte[] get(String key) {
         if (dataBase == null) {
             throw new IllegalStateException("Database not initialized");
         }
+
+        String timestamp;
         
         lockDataBase.lock();
         byte[] data = null;
         try{
+            timestamp = getCurrentTimestamp();
+            String message = timestamp + " | Get ";
+            sessionFile.log(message);
+            message = timestamp + " | Data during Get";
+            sessionFile.log(message);
+            logAllDataMain();
+
             data = dataBase.get(key);
+
+            if(data != null) {
+                String dataS = new String(data, StandardCharsets.UTF_8);
+                message = timestamp + " | Get result from batch " + " | ID: " + key + " | value: " + dataS;
+                sessionFile.log(message);
+            }
+
         } finally {
             lockDataBase.unlock();
         }
@@ -83,16 +151,26 @@ public class DataBase {
     }
 
     public Map<String, byte[]>  multiGetLockToCopy(Set<String> keys){
+        String timestamp;
         HashMap<String, byte[]> dataBaseCopy;
         Map<String, byte[]>  resultMap = new HashMap<>();
         
         lockDataBase.lock();
         try{
+            timestamp = getCurrentTimestamp();
+            String message = timestamp + " | MultiGet " + " | nº of keys: " + keys.size();
+            sessionFile.log(message);
+            message = timestamp + " | Data during MultiGet";
+            sessionFile.log(message);
+            logAllDataMain();
+
             dataBaseCopy = new HashMap<>(dataBase);
         } finally {
             lockDataBase.unlock();
         }
         for (String key : keys) {
+            String message = timestamp + " | MultiGet " + " | Key: " + " | ID: " + key ;
+            sessionFile.log(message);
             resultMap.put(key, dataBaseCopy.get(key));
         }
         
@@ -144,6 +222,36 @@ public class DataBase {
                 String data = new String(value, StandardCharsets.UTF_8);
                 System.out.println("ID: " + key + " - data: " + data);
             });
+        } finally {
+            lockDataBase.unlock();
+        }
+    }
+
+    public String getCurrentTimestamp() {
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss.SSS"));
+    }
+
+    public void logAllDataMain() {
+        if (dataBase == null) {
+            throw new IllegalStateException("Database not initialized");
+        }
+        
+        lockDataBase.lock();
+        try {
+            String timestamp = getCurrentTimestamp();
+            if(!dataBase.isEmpty()) {
+                dataBase.forEach((key, value) -> {
+                    String data = new String(value, StandardCharsets.UTF_8);
+                    String message = timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | ID: " + key + " - data: " + data;
+                    System.out.println(message);
+                    sessionFile.log(message);
+                });
+            }
+            else {
+                String message = timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | Empty ";
+                System.out.println(message);
+                sessionFile.log(message);
+            }
         } finally {
             lockDataBase.unlock();
         }
