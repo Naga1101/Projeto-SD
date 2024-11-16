@@ -4,8 +4,8 @@ import java.nio.charset.StandardCharsets;
 
 public class TestDataBase {
     public static void main(String[] args) {
-        DataBase db = new DataBase();
-        db.Database();
+        Logs log = new Logs();
+        DataBase db = new DataBase(log);
 
         // Simular vários clientes a mandar mensage
         System.out.println("\n-- Mensagens enviadas e recebidas --");

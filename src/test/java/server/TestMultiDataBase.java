@@ -1,12 +1,11 @@
 package server;
 
 import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class TestMultiDataBase {
     public static void main(String[] args) {
-        DataBase db = new DataBase();
-        db.Database();
+        Logs log = new Logs();
+        DataBase db = new DataBase(log);
 
         Random random = new Random();
 

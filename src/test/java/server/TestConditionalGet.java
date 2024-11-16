@@ -1,12 +1,11 @@
 package server;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 public class TestConditionalGet {
     public static void main(String[] args) throws InterruptedException {
-        DataBase db = new DataBase();
-        db.Database();
+        Logs log = new Logs();
+        DataBase db = new DataBase(log);
 
         db.put("key1", "Dados chave 1".getBytes(StandardCharsets.UTF_8));
         db.put("keyCond", "Valor Inicial".getBytes(StandardCharsets.UTF_8));

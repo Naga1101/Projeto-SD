@@ -2,6 +2,9 @@ package server;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -13,10 +16,16 @@ public class TestDataBaseComBatch {
 
         List<Map<String, byte[]>> testMaps = new ArrayList<>();
         for (int i = 1; i <= 15; i++) {
-            testMaps.add(parseFileToMap("test/files/test_file" + i + ".txt"));
+            Path filePath = Paths.get("src","test", "files", "test_file" + i + ".txt");
+            if (Files.exists(filePath)) {
+                testMaps.add(parseFileToMap(filePath.toString()));
+            } else {
+                System.out.println("File not found: " + filePath.toAbsolutePath());
+            }
+            //testMaps.add(parseFileToMap("test/files/test_file" + i + ".txt"));
         }
 
-        DataBaseWithBatch db = new DataBaseWithBatch(logFile, 85); 
+        DataBaseWithBatch db = new DataBaseWithBatch(logFile, 100);
         /** BatchSize dif time
          *  100: 1º- 540, 2º - 759, 3º- 559, 4º- 515, 5º- 643
          *  75: 1º- 548, 2º - 771, 3º- 582, 4º- 628, 5º- 639
