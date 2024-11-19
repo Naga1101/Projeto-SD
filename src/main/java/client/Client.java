@@ -1,19 +1,24 @@
 package client;
 
-import java.io.*;
-import java.net.*;
+import enums.Enums.autenticacao;
+import messagesFormat.AuthReply;
+import messagesFormat.LoginMsg;
+import messagesFormat.RegisterMsg;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 import java.util.Scanner;
 
-import messagesFormat.*;
-import enums.Enums.*;
-
-import static client.ClientMenus.*;
-
-public class Client {
+public class Client implements AutoCloseable {
     private static final String SERVER_ADDRESS = "localhost";
     private static final int SERVER_PORT = 12345;
     private boolean turnOff = false;
     private ClientMenus menus = new ClientMenus();
+    private Socket socket;
+    private DataInputStream in;
+    private DataOutputStream out;
 
     public static void main(String[] args) {
         Client client = new Client();
@@ -21,9 +26,10 @@ public class Client {
     }
 
     private void startClient(){
-        try (Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT)) {
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+        try {
+            socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
+            in = new DataInputStream(socket.getInputStream());
+            out = new DataOutputStream(socket.getOutputStream());
             
             while(!turnOff){
                 boolean loggedIn = clientLogin(out, in);
@@ -117,7 +123,7 @@ public class Client {
                 }
                 out.flush();
 
-                if(!turnOff) menus.printRegisterUserReply(reply, name);
+                if(!turnOff) menus.printReply(reply, name);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -134,6 +140,18 @@ public class Client {
                 String response = in.readUTF();
                 System.out.println("Server response: " + response);
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void close() {
+        try {
+            if (in != null) in.close();
+            if (out != null) out.close();
+            if (socket != null) socket.close();
+            System.out.println("Cliente desconectou-se com sucesso!");
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -8,20 +8,20 @@ public class ClientMenus {
         System.out.println("\n");
         System.out.println("----------- MENU DO CLIENTE -----------");
         System.out.println("\n");
-        System.out.println("Seleccione a acção pretendida:");
-        System.out.println("\n");
         System.out.println("1 - Login");
         System.out.println("2 - Registar novo Utilizador");
         System.out.println("3 - Sair");
+        System.out.println("Seleccione a acção pretendida:");
     }
 
     public void menuSelectOption(){
         System.out.println("\n");
-        System.out.println("----------- SELECCIONE A OPERAÇÃO -----------");
+        System.out.println("----------- MENU DE OPERAÇÕES -----------");
         System.out.println("\n");
         System.out.println("1 - Get");
         System.out.println("2 - Pull");
         System.out.println("3 - Sair");
+        System.out.println("Seleccione a acção pretendida:");
     }
 
     public void menuGet(){
@@ -32,6 +32,7 @@ public class ClientMenus {
         System.out.println("2 - multiGet");
         System.out.println("3 - getWhen");
         System.out.println("4 - Voltar atrás");
+        System.out.println("Seleccione a acção pretendida:");
     }
 
     public void menuPut(){
@@ -41,9 +42,10 @@ public class ClientMenus {
         System.out.println("1 - put");
         System.out.println("2 - multiPut");
         System.out.println("3 - Voltar atrás");
+        System.out.println("Seleccione a acção pretendida:");
     }
 
-    public void printRegisterUserReply(int reply , String user) {
+    public void printReply(int reply , String user) {
         switch (reply) {
             case 0:
                 System.out.println("User " + user + " já existe.\n");
@@ -65,6 +67,9 @@ public class ClientMenus {
                 break;
             case 6:
                 System.out.println("Credenciais do user " + user + " erradas.\n");
+                break;
+            case 9:
+                System.out.println("User" + user + "desconectado devido a inatividade\n");
                 break;
             default:
                 System.out.println("Unknown response.\n");

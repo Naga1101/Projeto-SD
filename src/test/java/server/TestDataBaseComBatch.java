@@ -25,7 +25,7 @@ public class TestDataBaseComBatch {
             //testMaps.add(parseFileToMap("test/files/test_file" + i + ".txt"));
         }
 
-        DataBaseWithBatch db = new DataBaseWithBatch(logFile, 100);
+        DataBaseWithBatch db = new DataBaseWithBatch(logFile, 50);
         /** BatchSize dif time
          *  100: 1º- 540, 2º - 759, 3º- 559, 4º- 515, 5º- 643
          *  75: 1º- 548, 2º - 771, 3º- 582, 4º- 628, 5º- 639

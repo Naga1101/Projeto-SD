@@ -1,7 +1,5 @@
 package server;
 
-import java.io.*;
-import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Condition;
@@ -82,7 +80,9 @@ public class UsersAuthenticator { // flags entre 0-9 são para funções relativ
         writeLock.lock();
         try {
             ClientData userLoggingOff = usersList.get(name);
-            userLoggingOff.setUserOffline();
+            if(userLoggingOff != null) {
+                userLoggingOff.setUserOffline();
+            }
             return 3; // 3 quando o user dá log out
         } finally {
             writeLock.unlock();
