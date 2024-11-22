@@ -17,19 +17,20 @@ public class BoundedBuffer<T> {
  	private Condition notEmpty;
  	private Condition notFull;
 
- 	public BoundedBuffer(int _size) {
- 		arr = (T[]) new Object[size];
- 		this.size = 0;
- 		lock = new ReentrantLock();
- 		notEmpty = lock.newCondition();
- 		notFull = lock.newCondition();
+ 	public BoundedBuffer(int size) {
+		 arr = (T[]) new Object[size];
+		 this.size = 0;
+		 lock = new ReentrantLock();
+		 notEmpty = lock.newCondition();
+		 notFull = lock.newCondition();
  	}
 
  	public void push(T item) throws InterruptedException {
+		 System.out.println("Push do item: " + item);
+		lock.lock();
  		try {
- 			lock.lock();
-
  			while (size >= arr.length) { // full
+				System.out.println("Buffer full do push");
  				notFull.await();
  			}
 
@@ -53,6 +54,7 @@ public class BoundedBuffer<T> {
 
  			size--;
  			item = arr[size];
+			System.out.println("Pop do item: " + item);
 
  			notFull.signal();
  		} finally {

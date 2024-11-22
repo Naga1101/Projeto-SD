@@ -20,9 +20,10 @@ public class Client implements AutoCloseable {
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
+    private Scanner scanner = new Scanner(System.in);
 
     private final int BufferSize = 15;
-    BoundedBuffer<CliToServMsg> sendBuffer;
+    private BoundedBuffer<CliToServMsg> sendBuffer = new BoundedBuffer<>(BufferSize);
     // BoundedBuffer<ServToCliMsg> recieveBuffer;
 
     public static void main(String[] args) {
@@ -35,13 +36,11 @@ public class Client implements AutoCloseable {
             socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
-            
+
             while(!turnOff){
                 boolean loggedIn = clientLogin(out, in);
             
                 if(loggedIn){
-                    sendBuffer = new BoundedBuffer<CliToServMsg>(BufferSize);
-
                     Thread sendThread = new Thread(() -> sendMessage(out));
                     //Thread receiveThread = new Thread(() -> receiveMessage(in));
 
@@ -50,6 +49,8 @@ public class Client implements AutoCloseable {
                     
                     authenticatedClient();
 
+                    turnOff = true;
+
                     sendThread.join();
                     //receiveThread.join();
                 }
@@ -57,6 +58,8 @@ public class Client implements AutoCloseable {
 
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
+        } finally {
+            close();
         }
     }
 
@@ -65,7 +68,6 @@ public class Client implements AutoCloseable {
         boolean loggedIn = false;
         int reply = -1;
         String name = "";
-        Scanner scanner = new Scanner(System.in);
         try {
             while (!loggedIn && !turnOff) {
                 // print das opções do menu 1 login | 2 registar | 3 fechar
@@ -80,8 +82,6 @@ public class Client implements AutoCloseable {
                     String password = scanner.nextLine();
 
                     LoginMsg msg = new LoginMsg(name, password);
-
-                    System.out.println(msg);
 
                     msg.serialize(out);
             
@@ -130,98 +130,90 @@ public class Client implements AutoCloseable {
 
     private void authenticatedClient() throws InterruptedException {
         boolean exit = false;
-        Scanner scanner = new Scanner(System.in);
 
-        try {
-            while (!exit){
-                menus.menuSelectOption();
-                int option = scanner.nextInt();
-                scanner.nextLine();
-                
-                switch (optionCommand.values()[option]) {
-                    case GET:
-                        GetMenu();
-                        break;
-                    case PUT:
-                        PutMenu();
-                        break;
-                    case EXIT:
-                        exit = true;
-                        break;
-                    default:
-                        System.out.println("Opção inválida! Por favor, tente novamente.");
-                        break;
-                }
-            } 
-        } 
+        while (!exit){
+            menus.menuSelectOption();
+            int option = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (optionCommand.values()[option]) {
+                case GET:
+                    GetMenu();
+                    break;
+                case PUT:
+                    PutMenu();
+                    break;
+                case EXIT:
+                    exit = true;
+                    break;
+                default:
+                    System.out.println("Opção inválida! Por favor, tente novamente.");
+                    break;
+            }
+        }
     }
 
     private void GetMenu() throws InterruptedException {
         boolean back = false;
-        Scanner scanner = new Scanner(System.in);
         CliToServMsg msg;
 
-        try {
-            while (!back){
-                menus.menuGet();
-                int option = scanner.nextInt();
-                scanner.nextLine();
+        while (!back){
+            menus.menuGet();
+            int option = scanner.nextInt();
+            scanner.nextLine();
 
-                switch (getCommand.values()[option]) {
-                    case GET:
-                        System.out.print("Escreva a chave que procura: ");
-                        String key = scanner.nextLine();
-                        msg = new GetMsg(key);
+            switch (getCommand.values()[option]) {
+                case GET:
+                    System.out.print("Escreva a chave que procura: ");
+                    String key = scanner.nextLine();
+                    msg = new GetMsg(key);
+                    System.out.println(msg);
 
+                    sendBuffer.push(msg);
+                    break;
+                case MULTIGET:
+                    System.out.print("Coloque o caminho para o ficheiro que contêm as chaves que procura: ");
+                    String filePath = scanner.nextLine();
+                    try {
+                        Set<String> KeySet = FileParser.parseFileToSet(filePath);
+                        msg = new MultiGetMsg(KeySet);
                         sendBuffer.push(msg);
-                        break;
-                    case MULTIGET:
-                        System.out.print("Coloque o caminho para o ficheiro que contêm as chaves que procura: ");
-                        String filePath = scanner.nextLine();
-                        try {
-                            Set<String> KeySet = FileParser.parseFileToSet(filePath);
-                            msg = new MultiGetMsg(KeySet);
-                            sendBuffer.push(msg);
-                        } catch (IOException e) {
-                            System.out.println("Erro ao ler o ficheiro. Verifique o caminho e tente novamente.");
-                        }
-                        break;
-                    case GETWHEN:
-                        System.out.print("Escreva a chave que procura: ");
-                        String keyWhen = scanner.nextLine();
-                        System.out.print("Escreva a chave onde se vai encontrar a condição: ");
-                        String keyCond = scanner.nextLine();
-                        System.out.print("Escreva a condição de que está à espera: ");
-                        String valueCond = scanner.nextLine();
-                        msg = new GetWhenMsg(keyWhen, keyCond, valueCond);
+                    } catch (IOException e) {
+                        System.out.println("Erro ao ler o ficheiro. Verifique o caminho e tente novamente.");
+                    }
+                    break;
+                case GETWHEN:
+                    System.out.print("Escreva a chave que procura: ");
+                    String keyWhen = scanner.nextLine();
+                    System.out.print("Escreva a chave onde se vai encontrar a condição: ");
+                    String keyCond = scanner.nextLine();
+                    System.out.print("Escreva a condição de que está à espera: ");
+                    String valueCond = scanner.nextLine();
+                    msg = new GetWhenMsg(keyWhen, keyCond, valueCond);
 
-                        sendBuffer.push(msg);
-                        break;
-                    case BACK:
-                        back = true;
-                        break;
-                    default:
-                        System.out.println("Opção inválida! Por favor, tente novamente.");
-                        break;
-                }
+                    sendBuffer.push(msg);
+                    break;
+                case BACK:
+                    back = true;
+                    break;
+                default:
+                    System.out.println("Opção inválida! Por favor, tente novamente.");
+                    break;
             }
-        } 
+        }
     }
 
     private void PutMenu() {
         boolean back = false;
-        Scanner scanner = new Scanner(System.in);
 
-        try {
-            while (!back){
-                menus.menuPut();
-                int option = scanner.nextInt();
-                scanner.nextLine();
+        while (!back){
+            menus.menuPut();
+            int option = scanner.nextInt();
+            scanner.nextLine();
 
-                if(option == putCommand.PUT.ordinal());
-                else if(option == putCommand.MULTIPUT.ordinal());
-                else if(option == putCommand.BACK.ordinal()) back = true;
-            } 
+            if(option == putCommand.PUT.ordinal());
+            else if(option == putCommand.MULTIPUT.ordinal());
+            else if(option == putCommand.BACK.ordinal()) back = true;
         }
     }
 
@@ -231,7 +223,6 @@ public class Client implements AutoCloseable {
         try {
             while (!turnOff) {
                 CliToServMsg msg = sendBuffer.pop();
-                System.out.println(msg);
                 msg.serialize(out);
                 out.flush();
             }
@@ -257,6 +248,7 @@ public class Client implements AutoCloseable {
             if (in != null) in.close();
             if (out != null) out.close();
             if (socket != null) socket.close();
+            scanner.close();
             System.out.println("Cliente desconectou-se com sucesso!");
         } catch (IOException e) {
             e.printStackTrace();
