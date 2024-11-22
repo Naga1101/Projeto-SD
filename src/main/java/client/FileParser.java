@@ -27,4 +27,16 @@ public class FileParser {
         }
         return map;
     }
+
+    public static Set<String> parseFileToSet(String filePath) throws IOException {
+        Set<String> set = new HashSet<>();
+
+        List<String> lines = Files.readAllLines(Paths.get(filePath));
+
+        for (String line : lines) {
+            set.add(line.trim());
+        }
+
+        return set;
+    }
 }

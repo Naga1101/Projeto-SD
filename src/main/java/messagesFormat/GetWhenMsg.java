@@ -21,6 +21,12 @@ public class GetWhenMsg implements MsgInterfaces.CliToServMsg {
         this.valueCond = valueCond;
     }
 
+    public GetWhenMsg(String key, String keyCond, String valueCond) {
+        this.key = key;
+        this.keyCond = keyCond;
+        this.valueCond = valueCond.getBytes();
+    }
+
     // Copy constructor
     public GetWhenMsg(GetWhenMsg msg) {
         this.key = msg.key;

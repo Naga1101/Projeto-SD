@@ -1,15 +1,16 @@
 package client;
 
-import enums.Enums.autenticacao;
-import messagesFormat.AuthReply;
-import messagesFormat.LoginMsg;
-import messagesFormat.RegisterMsg;
+import enums.Enums.*;
+import messagesFormat.*;
+import messagesFormat.MsgInterfaces.*;
+import utils.BoundedBuffer;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.Set;
 
 public class Client implements AutoCloseable {
     private static final String SERVER_ADDRESS = "localhost";
@@ -19,6 +20,10 @@ public class Client implements AutoCloseable {
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
+
+    private final int BufferSize = 15;
+    BoundedBuffer<CliToServMsg> sendBuffer;
+    // BoundedBuffer<ServToCliMsg> recieveBuffer;
 
     public static void main(String[] args) {
         Client client = new Client();
@@ -35,14 +40,18 @@ public class Client implements AutoCloseable {
                 boolean loggedIn = clientLogin(out, in);
             
                 if(loggedIn){
+                    sendBuffer = new BoundedBuffer<CliToServMsg>(BufferSize);
+
                     Thread sendThread = new Thread(() -> sendMessage(out));
-                    Thread receiveThread = new Thread(() -> receiveMessage(in));
-    
+                    //Thread receiveThread = new Thread(() -> receiveMessage(in));
+
                     sendThread.start();
-                    receiveThread.start();
-    
+                    //receiveThread.start();
+                    
+                    authenticatedClient();
+
                     sendThread.join();
-                    receiveThread.join();
+                    //receiveThread.join();
                 }
             }
 
@@ -51,19 +60,6 @@ public class Client implements AutoCloseable {
         }
     }
 
-    private void sendMessage(DataOutputStream out) {
-        Scanner scanner = new Scanner(System.in);
-        try {
-            while (true) {
-                System.out.print("Enter message to send: ");
-                String message = scanner.nextLine();
-                out.writeUTF(message);
-                out.flush();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     private boolean clientLogin(DataOutputStream out, DataInputStream in){
         boolean loggedIn = false;
@@ -127,16 +123,126 @@ public class Client implements AutoCloseable {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            scanner.close();
         }
 
         return loggedIn;
     }
 
+    private void authenticatedClient() throws InterruptedException {
+        boolean exit = false;
+        Scanner scanner = new Scanner(System.in);
+
+        try {
+            while (!exit){
+                menus.menuSelectOption();
+                int option = scanner.nextInt();
+                scanner.nextLine();
+                
+                switch (optionCommand.values()[option]) {
+                    case GET:
+                        GetMenu();
+                        break;
+                    case PUT:
+                        PutMenu();
+                        break;
+                    case EXIT:
+                        exit = true;
+                        break;
+                    default:
+                        System.out.println("Opção inválida! Por favor, tente novamente.");
+                        break;
+                }
+            } 
+        } 
+    }
+
+    private void GetMenu() throws InterruptedException {
+        boolean back = false;
+        Scanner scanner = new Scanner(System.in);
+        CliToServMsg msg;
+
+        try {
+            while (!back){
+                menus.menuGet();
+                int option = scanner.nextInt();
+                scanner.nextLine();
+
+                switch (getCommand.values()[option]) {
+                    case GET:
+                        System.out.print("Escreva a chave que procura: ");
+                        String key = scanner.nextLine();
+                        msg = new GetMsg(key);
+
+                        sendBuffer.push(msg);
+                        break;
+                    case MULTIGET:
+                        System.out.print("Coloque o caminho para o ficheiro que contêm as chaves que procura: ");
+                        String filePath = scanner.nextLine();
+                        try {
+                            Set<String> KeySet = FileParser.parseFileToSet(filePath);
+                            msg = new MultiGetMsg(KeySet);
+                            sendBuffer.push(msg);
+                        } catch (IOException e) {
+                            System.out.println("Erro ao ler o ficheiro. Verifique o caminho e tente novamente.");
+                        }
+                        break;
+                    case GETWHEN:
+                        System.out.print("Escreva a chave que procura: ");
+                        String keyWhen = scanner.nextLine();
+                        System.out.print("Escreva a chave onde se vai encontrar a condição: ");
+                        String keyCond = scanner.nextLine();
+                        System.out.print("Escreva a condição de que está à espera: ");
+                        String valueCond = scanner.nextLine();
+                        msg = new GetWhenMsg(keyWhen, keyCond, valueCond);
+
+                        sendBuffer.push(msg);
+                        break;
+                    case BACK:
+                        back = true;
+                        break;
+                    default:
+                        System.out.println("Opção inválida! Por favor, tente novamente.");
+                        break;
+                }
+            }
+        } 
+    }
+
+    private void PutMenu() {
+        boolean back = false;
+        Scanner scanner = new Scanner(System.in);
+
+        try {
+            while (!back){
+                menus.menuPut();
+                int option = scanner.nextInt();
+                scanner.nextLine();
+
+                if(option == putCommand.PUT.ordinal());
+                else if(option == putCommand.MULTIPUT.ordinal());
+                else if(option == putCommand.BACK.ordinal()) back = true;
+            } 
+        }
+    }
+
+    // Send Recieve e Close
+
+    private void sendMessage(DataOutputStream out) {
+        try {
+            while (!turnOff) {
+                CliToServMsg msg = sendBuffer.pop();
+                System.out.println(msg);
+                msg.serialize(out);
+                out.flush();
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void receiveMessage(DataInputStream in) {
         try {
-            while (true) {
+            while (!turnOff) {
                 String response = in.readUTF();
                 System.out.println("Server response: " + response);
             }
