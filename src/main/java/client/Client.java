@@ -9,6 +9,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -203,7 +205,7 @@ public class Client implements AutoCloseable {
         }
     }
 
-    private void PutMenu() {
+    private void PutMenu() throws InterruptedException {
         boolean back = false;
 
         while (!back){
@@ -213,8 +215,25 @@ public class Client implements AutoCloseable {
 
             switch (putCommand.values()[option]) {
                 case PUT:
+                    System.out.print("Escreva a chave que pretende armazenar: ");
+                    String key = scanner.nextLine();
+                    System.out.print("Escreva o conteúdo a armazenar: ");
+                    String value = scanner.nextLine();
+                    CliToServMsg putMsg = new PutMsg(key, value);
+
+                    sendBuffer.push(putMsg);
                     break;
                 case MULTIPUT:
+                    System.out.print("Coloque o caminho para o ficheiro que contém as chaves e conteúdos: ");
+                    String filePath = scanner.nextLine();
+                    try {
+                        Map<String, byte[]> keyValuePairs = FileParser.parseFileToMap(filePath);
+
+                        CliToServMsg multiPutMsg = new MultiPutMsg(keyValuePairs);
+                        sendBuffer.push(multiPutMsg);
+                    } catch (IOException e) {
+                        System.out.println("Erro ao ler o ficheiro. Verifique o caminho e o formato e tente novamente.");
+                    }
                     break;
                 case BACK:
                     back = true;
