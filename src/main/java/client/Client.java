@@ -211,9 +211,18 @@ public class Client implements AutoCloseable {
             int option = scanner.nextInt();
             scanner.nextLine();
 
-            if(option == putCommand.PUT.ordinal());
-            else if(option == putCommand.MULTIPUT.ordinal());
-            else if(option == putCommand.BACK.ordinal()) back = true;
+            switch (putCommand.values()[option]) {
+                case PUT:
+                    break;
+                case MULTIPUT:
+                    break;
+                case BACK:
+                    back = true;
+                    break;
+                default:
+                    System.out.println("Opção inválida! Por favor, tente novamente.");
+                    break;
+            }
         }
     }
 

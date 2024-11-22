@@ -19,7 +19,7 @@ public class ClientMenus {
         System.out.println("----------- MENU DE OPERAÇÕES -----------");
         System.out.println("\n");
         System.out.println("1 - Get");
-        System.out.println("2 - Pull");
+        System.out.println("2 - Put");
         System.out.println("3 - Sair");
         System.out.println("Seleccione a acção pretendida:");
     }
