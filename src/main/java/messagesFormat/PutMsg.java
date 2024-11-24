@@ -1,10 +1,11 @@
 package messagesFormat;
 
-import java.io.DataOutputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
 import enums.Enums.commandType;
 import enums.Enums.putCommand;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class PutMsg implements MsgInterfaces.CliToServMsg {
     private static final byte OPCODE = (byte) commandType.PUT.ordinal();

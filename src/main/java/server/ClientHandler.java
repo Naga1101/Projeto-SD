@@ -2,7 +2,6 @@ package server;
 
 import enums.Enums.*;
 import messagesFormat.*;
-import messagesFormat.MsgInterfaces.CliToServMsg;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -111,15 +110,87 @@ public class ClientHandler implements Runnable {
         }
         return loggedIn;
     }
-
+    //TODO encapsular o comando com o cliente que o pediu
     private void readFromClient() {
         System.out.println(user + " já efetuou login e vai começar a enviar mensagens!");
         try {
             while (true) {
-                CliToServMsg message = null;               }
-                message.deserialize(in);
-                System.out.println("Received from client: " + message);
-                // Handle message (could add to queue or other data structure)
+                byte opcodeByte = in.readByte();
+                activeTimer.resetCountdown();
+
+                commandType opcode;
+                try {
+                    opcode = commandType.fromCode(opcodeByte);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Opcode inválido recebido: " + opcodeByte);
+                    continue;
+                }
+
+                switch(opcode){
+                    case GET:
+                        byte commandGetCodeByte = in.readByte();
+                        activeTimer.resetCountdown();
+
+                        getCommand commandGetCode;
+                        try {
+                            commandGetCode = getCommand.fromCode(commandGetCodeByte);
+                        } catch (IllegalArgumentException e) {
+                            System.out.println("commandCode inválido recebido: " + commandGetCodeByte);
+                            continue;
+                        }
+
+                        switch (commandGetCode){
+                            case GET:
+                                GetMsg getMsg = new GetMsg();
+                                getMsg.deserialize(in);
+
+                                System.out.println(getMsg);
+                                break;
+                            case MULTIGET:
+                                MultiGetMsg multiGetMsg = new MultiGetMsg();
+                                multiGetMsg.deserialize(in);
+
+                                System.out.println(multiGetMsg);
+                                break;
+                            case GETWHEN:
+                                GetWhenMsg getWhenMsg = new GetWhenMsg();
+                                getWhenMsg.deserialize(in);
+
+                                System.out.println(getWhenMsg);
+                                break;
+                        }
+
+                        break;
+
+                    case PUT:
+                        byte commandPutCodeByte = in.readByte();
+                        activeTimer.resetCountdown();
+
+                        putCommand commandPutCode;
+                        try {
+                            commandPutCode = putCommand.fromCode(commandPutCodeByte);
+                        } catch (IllegalArgumentException e) {
+                            System.out.println("commandCode inválido recebido: " + commandPutCodeByte);
+                            continue;
+                        }
+
+                        switch (commandPutCode){
+                            case PUT:
+                                PutMsg putMsg = new PutMsg();
+                                putMsg.deserialize(in);
+
+                                System.out.println(putMsg);
+                                break;
+                            case MULTIPUT:
+                                MultiPutMsg multiPutMsg = new MultiPutMsg();
+                                multiPutMsg.deserialize(in);
+
+                                System.out.println(multiPutMsg);
+                                break;
+                        }
+
+                        break;
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
