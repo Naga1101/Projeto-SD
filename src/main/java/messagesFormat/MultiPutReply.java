@@ -8,7 +8,7 @@ import enums.Enums.putCommand;
 
 public class MultiPutReply implements MsgInterfaces.ServToCliMsg {
     private static final byte OPCODE = (byte) commandType.PUT.ordinal();
-    private static final byte SUBCODE = (byte) putCommand.PUT.ordinal(); 
+    private static final byte SUBCODE = (byte) putCommand.MULTIPUT.ordinal(); 
     private int reply;
     private String info;
 
