@@ -3,6 +3,7 @@ package server;
 import messagesFormat.MsgInterfaces.CliToServMsg;
 import messagesFormat.*;
 import enums.Enums.*;
+import utils.BoundedBuffer;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -17,6 +18,8 @@ public class ClientHandler implements Runnable {
     private Timer activeTimer;
     private static Runnable onTimeout = () -> System.out.println("Inactive for to long!!");
     private String user = "";
+    private final int BufferSize = 15;
+    private BoundedBuffer<EncapsulatedMsg> inputBuffer;
 
     public ClientHandler(Socket socket, UsersAuthenticator usersAuthenticator) {
         this.clientSocket = socket;
@@ -41,9 +44,11 @@ public class ClientHandler implements Runnable {
         if(loggedIn){
             Thread readerThread = new Thread(this::readFromClient);
             Thread replyThread = new Thread(this::replyToClient);
+            Thread handleInputBuffer = new Thread(this::handleInputBuffer);
             
             readerThread.start();
             replyThread.start();
+            handleInputBuffer.start();
         }
     }
 
@@ -81,6 +86,7 @@ public class ClientHandler implements Runnable {
                             loggedIn = true;
                             user = name;
                             activeTimer.assignUsernameToTimer(name);
+                            inputBuffer = new BoundedBuffer<>(BufferSize);
                         }
 
 						break;
@@ -88,7 +94,7 @@ public class ClientHandler implements Runnable {
 						RegisterMsg regRequest = new RegisterMsg();
 						regRequest.deserialize(in);
 
-                        System.out.println(regRequest);
+                        //System.out.println(regRequest);
 
                         name = regRequest.getUsername();
                         password = regRequest.getPassword();
@@ -111,12 +117,12 @@ public class ClientHandler implements Runnable {
         }
         return loggedIn;
     }
-    
+
     private void readFromClient() {
-        System.out.println(user + " já efetuou login e vai começar a enviar mensagens!");
+        // System.out.println(user + " já efetuou login e vai começar a enviar mensagens!");
         try {
             while (true) {
-                EncapsulatedMsg<CliToServMsg> EncapsulatedMsg = new EncapsulatedMsg<>();
+                EncapsulatedMsg<CliToServMsg> EncapsulatedMsg = null;
 
                 byte opcodeByte = in.readByte();
                 activeTimer.resetCountdown();
@@ -204,13 +210,19 @@ public class ClientHandler implements Runnable {
 
                         break;
                 }
+
+                if(EncapsulatedMsg != null) inputBuffer.push(EncapsulatedMsg);
             }
+
         } catch (IOException e) {
             e.printStackTrace();
             Server.clientDisconnected();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
+    // TODO falta fazer o reply to client
     private void replyToClient() {
         try {
             while (true) {
@@ -221,6 +233,21 @@ public class ClientHandler implements Runnable {
                 Thread.sleep(5000); // Delay for demonstration
             }
         } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // TODO ler a msg encapsulada verificar o comando e definir a prioridade dps enviar para o boundedBuffer
+    //  (talvez ter 3 boundedBuffers um para cada prioridade)
+    private void handleInputBuffer(){
+        try {
+            while (true) {
+                EncapsulatedMsg<CliToServMsg> EncapsulatedMsg = inputBuffer.pop();
+
+                CliToServMsg msg = EncapsulatedMsg.getMessage();
+                Server.commandsUnschedule.push(EncapsulatedMsg);
+            }
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }

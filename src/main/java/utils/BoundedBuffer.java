@@ -1,10 +1,5 @@
 package utils;
 
-import java.io.*;
-import java.net.*;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.NoSuchElementException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -30,14 +25,16 @@ public class BoundedBuffer<T> {
 		lock.lock();
  		try {
  			while (size >= arr.length) { // full
-				System.out.println("Buffer full do push");
+				//System.out.println("Buffer full no push: " + size);
  				notFull.await();
  			}
 
+			//System.out.println("Push efetuado: " + size);
  			arr[size] = item;
  			size++;
 
  			notEmpty.signal();
+			//System.out.println("Sinal de não empty enviado");
  		} finally {
  			lock.unlock();
  		}
@@ -49,12 +46,14 @@ public class BoundedBuffer<T> {
  			lock.lock();
 
  			while (size < 1) { // empty
+				//System.out.println("Wait no pop por estar empty: " + size);
  				notEmpty.await();
  			}
 
+			//System.out.println("Buffer já não está empty: " + size);
  			size--;
  			item = arr[size];
-			System.out.println("Pop do item: " + item);
+			//System.out.println("Pop do item: " + item);
 
  			notFull.signal();
  		} finally {

@@ -1,13 +1,15 @@
 package server;
 
+import enums.Enums.TaskPriority;
 import messagesFormat.MsgInterfaces.IMessage;
 
-import java.io.DataOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class EncapsulatedMsg<T extends IMessage>{
     private String user;
+    private TaskPriority priority;
     private T message;
 
     //to be filled in deserialize
@@ -35,6 +37,10 @@ public class EncapsulatedMsg<T extends IMessage>{
         this.user = user;
     }
 
+    public void setPriority(TaskPriority priotity) {
+        this.priority = priotity;
+    }
+
     public void setMessage(T msg) {
         this.message = msg;
     }
@@ -42,6 +48,7 @@ public class EncapsulatedMsg<T extends IMessage>{
     public void serialize(DataOutputStream dos) throws IOException{
         this.message.serializeWithoutFlush(dos);
         dos.writeUTF(user);
+        dos.writeUTF(priority.name());
         dos.flush();
     }
 
@@ -49,13 +56,15 @@ public class EncapsulatedMsg<T extends IMessage>{
     public void deserialize(DataInputStream dis) throws IOException {
         this.message.deserialize(dis);
         this.setUser(dis.readUTF());
+        String priorityName = dis.readUTF();
+        this.setPriority(TaskPriority.valueOf(priorityName));
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("User: " + this.user);
-        sb.append("Command: " + this.message.toString());
+        sb.append(" | Command: " + this.message.toString());
         return sb.toString();
     }
 

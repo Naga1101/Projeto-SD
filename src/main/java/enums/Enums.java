@@ -127,5 +127,11 @@ public class Enums{
             }
             throw new IllegalArgumentException("Código de operação inválido: " + code);
         }
-    }    
+    }
+
+    public enum TaskPriority {
+        HIGH,    // gets e puts simples e getwhen: como são as tarefas mais rápidas então têm maior prioridade
+        MEDIUM,  // multiget : é mais rápido que o multiput mas demora mais tempo que as tarefas simples
+        LOW     // multiput
+    }
 }

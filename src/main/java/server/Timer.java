@@ -1,12 +1,7 @@
 package server;
 
-import java.io.*;
-import java.net.*;
-import java.util.HashMap;
-import java.util.concurrent.*;
-
 public class Timer {
-    private static final int TIMEOUT = 30000; // 30 seconds
+    private static final int TIMEOUT = 180000; // 3 minutos
     private Thread countdownThread;
     private Runnable onTimeout;
 
