@@ -51,6 +51,30 @@ public class Enums{
             throw new IllegalArgumentException("Código de operação inválido: " + code);
         }
     }
+
+    public enum commandType {
+        GET(0),
+        PUT(1);
+
+        private final int code;
+
+        commandType(int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
+
+        public static commandType fromCode(int code) {
+            for (commandType op : commandType.values()) {
+                if (op.getCode() == code) {
+                    return op;
+                }
+            }
+            throw new IllegalArgumentException("Código de operação inválido: " + code);
+        }
+    }
     
     public enum getCommand {
         AUX0(0),

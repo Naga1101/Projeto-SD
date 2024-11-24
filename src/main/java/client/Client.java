@@ -1,15 +1,17 @@
 package client;
 
-import enums.Enums.*;
+import enums.Enums.autenticacao;
+import enums.Enums.getCommand;
+import enums.Enums.optionCommand;
+import enums.Enums.putCommand;
 import messagesFormat.*;
-import messagesFormat.MsgInterfaces.*;
+import messagesFormat.MsgInterfaces.CliToServMsg;
 import utils.BoundedBuffer;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -135,22 +137,31 @@ public class Client implements AutoCloseable {
 
         while (!exit){
             menus.menuSelectOption();
-            int option = scanner.nextInt();
-            scanner.nextLine();
+            try{
+                int option = scanner.nextInt();
+                scanner.nextLine();
 
-            switch (optionCommand.values()[option]) {
-                case GET:
-                    GetMenu();
-                    break;
-                case PUT:
-                    PutMenu();
-                    break;
-                case EXIT:
-                    exit = true;
-                    break;
-                default:
+                if(option >= 0 && option < optionCommand.values().length){
+                    switch (optionCommand.values()[option]) {
+                        case GET:
+                            GetMenu();
+                            break;
+                        case PUT:
+                            PutMenu();
+                            break;
+                        case EXIT:
+                            exit = true;
+                            break;
+                        default:
+                            System.out.println("Opção inválida! Por favor, tente novamente.");
+                            break;
+                    }
+                } else {
                     System.out.println("Opção inválida! Por favor, tente novamente.");
-                    break;
+                }
+            } catch (Exception e) {
+                System.out.println("Opção inválida! Por favor, tente novamente.");
+                scanner.nextLine();
             }
         }
     }
@@ -161,46 +172,55 @@ public class Client implements AutoCloseable {
 
         while (!back){
             menus.menuGet();
-            int option = scanner.nextInt();
-            scanner.nextLine();
+            try{
+                int option = scanner.nextInt();
+                scanner.nextLine();
 
-            switch (getCommand.values()[option]) {
-                case GET:
-                    System.out.print("Escreva a chave que procura: ");
-                    String key = scanner.nextLine();
-                    msg = new GetMsg(key);
-                    System.out.println(msg);
+                if(option >= 0 && option < getCommand.values().length){
+                    switch (getCommand.values()[option]) {
+                        case GET:
+                            System.out.print("Escreva a chave que procura: ");
+                            String key = scanner.nextLine();
+                            msg = new GetMsg(key);
+                            System.out.println(msg);
 
-                    sendBuffer.push(msg);
-                    break;
-                case MULTIGET:
-                    System.out.print("Coloque o caminho para o ficheiro que contêm as chaves que procura: ");
-                    String filePath = scanner.nextLine();
-                    try {
-                        Set<String> KeySet = FileParser.parseFileToSet(filePath);
-                        msg = new MultiGetMsg(KeySet);
-                        sendBuffer.push(msg);
-                    } catch (IOException e) {
-                        System.out.println("Erro ao ler o ficheiro. Verifique o caminho e tente novamente.");
+                            sendBuffer.push(msg);
+                            break;
+                        case MULTIGET:
+                            System.out.print("Coloque o caminho para o ficheiro que contêm as chaves que procura: ");
+                            String filePath = scanner.nextLine();
+                            try {
+                                Set<String> KeySet = FileParser.parseFileToSet(filePath);
+                                msg = new MultiGetMsg(KeySet);
+                                sendBuffer.push(msg);
+                            } catch (IOException e) {
+                                System.out.println("Erro ao ler o ficheiro. Verifique o caminho e tente novamente.");
+                            }
+                            break;
+                        case GETWHEN:
+                            System.out.print("Escreva a chave que procura: ");
+                            String keyWhen = scanner.nextLine();
+                            System.out.print("Escreva a chave onde se vai encontrar a condição: ");
+                            String keyCond = scanner.nextLine();
+                            System.out.print("Escreva a condição de que está à espera: ");
+                            String valueCond = scanner.nextLine();
+                            msg = new GetWhenMsg(keyWhen, keyCond, valueCond);
+
+                            sendBuffer.push(msg);
+                            break;
+                        case BACK:
+                            back = true;
+                            break;
+                        default:
+                            System.out.println("Opção inválida! Por favor, tente novamente.");
+                            break;
                     }
-                    break;
-                case GETWHEN:
-                    System.out.print("Escreva a chave que procura: ");
-                    String keyWhen = scanner.nextLine();
-                    System.out.print("Escreva a chave onde se vai encontrar a condição: ");
-                    String keyCond = scanner.nextLine();
-                    System.out.print("Escreva a condição de que está à espera: ");
-                    String valueCond = scanner.nextLine();
-                    msg = new GetWhenMsg(keyWhen, keyCond, valueCond);
-
-                    sendBuffer.push(msg);
-                    break;
-                case BACK:
-                    back = true;
-                    break;
-                default:
+                } else {
                     System.out.println("Opção inválida! Por favor, tente novamente.");
-                    break;
+                }
+            } catch (Exception e) {
+                System.out.println("Opção inválida! Por favor, tente novamente.");
+                scanner.nextLine();
             }
         }
     }
@@ -210,37 +230,46 @@ public class Client implements AutoCloseable {
 
         while (!back){
             menus.menuPut();
-            int option = scanner.nextInt();
-            scanner.nextLine();
+            try{
+                int option = scanner.nextInt();
+                scanner.nextLine();
 
-            switch (putCommand.values()[option]) {
-                case PUT:
-                    System.out.print("Escreva a chave que pretende armazenar: ");
-                    String key = scanner.nextLine();
-                    System.out.print("Escreva o conteúdo a armazenar: ");
-                    String value = scanner.nextLine();
-                    CliToServMsg putMsg = new PutMsg(key, value);
+                if(option >= 0 && option < putCommand.values().length){
+                    switch (putCommand.values()[option]) {
+                        case PUT:
+                            System.out.print("Escreva a chave que pretende armazenar: ");
+                            String key = scanner.nextLine();
+                            System.out.print("Escreva o conteúdo a armazenar: ");
+                            String value = scanner.nextLine();
+                            CliToServMsg putMsg = new PutMsg(key, value);
 
-                    sendBuffer.push(putMsg);
-                    break;
-                case MULTIPUT:
-                    System.out.print("Coloque o caminho para o ficheiro que contém as chaves e conteúdos: ");
-                    String filePath = scanner.nextLine();
-                    try {
-                        Map<String, byte[]> keyValuePairs = FileParser.parseFileToMap(filePath);
+                            sendBuffer.push(putMsg);
+                            break;
+                        case MULTIPUT:
+                            System.out.print("Coloque o caminho para o ficheiro que contém as chaves e conteúdos: ");
+                            String filePath = scanner.nextLine();
+                            try {
+                                Map<String, byte[]> keyValuePairs = FileParser.parseFileToMap(filePath);
 
-                        CliToServMsg multiPutMsg = new MultiPutMsg(keyValuePairs);
-                        sendBuffer.push(multiPutMsg);
-                    } catch (IOException e) {
-                        System.out.println("Erro ao ler o ficheiro. Verifique o caminho e o formato e tente novamente.");
+                                CliToServMsg multiPutMsg = new MultiPutMsg(keyValuePairs);
+                                sendBuffer.push(multiPutMsg);
+                            } catch (IOException e) {
+                                System.out.println("Erro ao ler o ficheiro. Verifique o caminho e o formato e tente novamente.");
+                            }
+                            break;
+                        case BACK:
+                            back = true;
+                            break;
+                        default:
+                            System.out.println("Opção inválida! Por favor, tente novamente.");
+                            break;
                     }
-                    break;
-                case BACK:
-                    back = true;
-                    break;
-                default:
+                } else {
                     System.out.println("Opção inválida! Por favor, tente novamente.");
-                    break;
+                }
+            } catch (Exception e) {
+                System.out.println("Opção inválida! Por favor, tente novamente.");
+                scanner.nextLine();
             }
         }
     }
