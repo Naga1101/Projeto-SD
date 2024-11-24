@@ -4,11 +4,12 @@ import java.io.DataOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.*;
-
+import enums.Enums.commandType;
 import enums.Enums.putCommand;
 
 public class MultiPutMsg implements MsgInterfaces.CliToServMsg {
-    private static final byte OPCODE = (byte) putCommand.MULTIPUT.ordinal(); 
+    private static final byte OPCODE = (byte) commandType.PUT.ordinal();
+    private static final byte SUBCODE = (byte) putCommand.MULTIPUT.ordinal();
     private Map<String, byte[]> pairs;
 
     public MultiPutMsg() {
@@ -27,6 +28,7 @@ public class MultiPutMsg implements MsgInterfaces.CliToServMsg {
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
+        dos.writeByte(SUBCODE);
         dos.writeInt(pairs.size());
         for (Map.Entry<String, byte[]> entry : pairs.entrySet()) {
             dos.writeUTF(entry.getKey());
@@ -39,6 +41,7 @@ public class MultiPutMsg implements MsgInterfaces.CliToServMsg {
     @Override
     public void serializeWithoutFlush(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
+        dos.writeByte(SUBCODE);
         dos.writeInt(pairs.size());
         for (Map.Entry<String, byte[]> entry : pairs.entrySet()) {
             dos.writeUTF(entry.getKey());
