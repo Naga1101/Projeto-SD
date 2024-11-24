@@ -23,11 +23,3 @@ key19
 key24
 key3
 key23
-key13
-key4
-key16
-key22
-key30
-key12
-key2
-key17
