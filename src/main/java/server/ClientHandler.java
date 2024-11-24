@@ -1,7 +1,8 @@
 package server;
 
-import enums.Enums.*;
+import messagesFormat.MsgInterfaces.CliToServMsg;
 import messagesFormat.*;
+import enums.Enums.*;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -110,11 +111,13 @@ public class ClientHandler implements Runnable {
         }
         return loggedIn;
     }
-    //TODO encapsular o comando com o cliente que o pediu
+    
     private void readFromClient() {
         System.out.println(user + " já efetuou login e vai começar a enviar mensagens!");
         try {
             while (true) {
+                EncapsulatedMsg<CliToServMsg> EncapsulatedMsg = new EncapsulatedMsg<>();
+
                 byte opcodeByte = in.readByte();
                 activeTimer.resetCountdown();
 
@@ -144,19 +147,25 @@ public class ClientHandler implements Runnable {
                                 GetMsg getMsg = new GetMsg();
                                 getMsg.deserialize(in);
 
-                                System.out.println(getMsg);
+                                EncapsulatedMsg = new EncapsulatedMsg<>(user, getMsg);
+
+                                System.out.println(EncapsulatedMsg);
                                 break;
                             case MULTIGET:
                                 MultiGetMsg multiGetMsg = new MultiGetMsg();
                                 multiGetMsg.deserialize(in);
 
-                                System.out.println(multiGetMsg);
+                                EncapsulatedMsg = new EncapsulatedMsg<>(user, multiGetMsg);
+
+                                System.out.println(EncapsulatedMsg);
                                 break;
                             case GETWHEN:
                                 GetWhenMsg getWhenMsg = new GetWhenMsg();
                                 getWhenMsg.deserialize(in);
 
-                                System.out.println(getWhenMsg);
+                                EncapsulatedMsg = new EncapsulatedMsg<>(user, getWhenMsg);
+
+                                System.out.println(EncapsulatedMsg);
                                 break;
                         }
 
@@ -179,13 +188,17 @@ public class ClientHandler implements Runnable {
                                 PutMsg putMsg = new PutMsg();
                                 putMsg.deserialize(in);
 
-                                System.out.println(putMsg);
+                                EncapsulatedMsg = new EncapsulatedMsg<>(user, putMsg);
+
+                                System.out.println(EncapsulatedMsg);
                                 break;
                             case MULTIPUT:
                                 MultiPutMsg multiPutMsg = new MultiPutMsg();
                                 multiPutMsg.deserialize(in);
 
-                                System.out.println(multiPutMsg);
+                                EncapsulatedMsg = new EncapsulatedMsg<>(user, multiPutMsg);
+
+                                System.out.println(EncapsulatedMsg);
                                 break;
                         }
 
