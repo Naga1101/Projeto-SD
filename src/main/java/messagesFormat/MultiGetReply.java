@@ -1,14 +1,17 @@
 package messagesFormat;
 
-import java.io.DataOutputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.util.*;
-
+import enums.Enums.commandType;
 import enums.Enums.getCommand;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 public class MultiGetReply implements MsgInterfaces.ServToCliMsg {
-    private static final byte OPCODE = (byte) getCommand.MULTIGET.ordinal(); 
+    private static final byte OPCODE = (byte) commandType.GET.ordinal();
+    private static final byte SUBCODE = (byte) getCommand.MULTIGET.ordinal();
     private Map<String, byte[]> reply;
     private String info; // error info?
 
@@ -27,6 +30,7 @@ public class MultiGetReply implements MsgInterfaces.ServToCliMsg {
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
+        dos.writeByte(SUBCODE);
         dos.writeInt(reply.size());
         for (Map.Entry<String, byte[]> entry : reply.entrySet()) {
             dos.writeUTF(entry.getKey());
@@ -40,6 +44,7 @@ public class MultiGetReply implements MsgInterfaces.ServToCliMsg {
     @Override
     public void serializeWithoutFlush(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
+        dos.writeByte(SUBCODE);
         dos.writeInt(reply.size());
         for (Map.Entry<String, byte[]> entry : reply.entrySet()) {
             dos.writeUTF(entry.getKey());

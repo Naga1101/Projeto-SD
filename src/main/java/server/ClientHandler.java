@@ -1,11 +1,13 @@
 package server;
 
-import java.io.*;
-import java.net.*;
-import java.util.concurrent.*;
-
+import enums.Enums.*;
 import messagesFormat.*;
-import enums.Enums.autenticacao;
+import messagesFormat.MsgInterfaces.CliToServMsg;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 
 public class ClientHandler implements Runnable {
     private Socket clientSocket;
@@ -14,6 +16,7 @@ public class ClientHandler implements Runnable {
     private UsersAuthenticator usersAuthenticator;
     private Timer activeTimer;
     private static Runnable onTimeout = () -> System.out.println("Inactive for to long!!");
+    private String user = "";
 
     public ClientHandler(Socket socket, UsersAuthenticator usersAuthenticator) {
         this.clientSocket = socket;
@@ -54,7 +57,6 @@ public class ClientHandler implements Runnable {
                 byte opcodeByte = in.readByte();
                 activeTimer.resetCountdown();
 
-                // Converte o código numérico para o enum autenticacao
                 autenticacao opcode;
                 try {
                     opcode = autenticacao.fromCode(opcodeByte);
@@ -77,6 +79,7 @@ public class ClientHandler implements Runnable {
 
                         if(reply == 2){
                             loggedIn = true;
+                            user = name;
                             activeTimer.assignUsernameToTimer(name);
                         }
 
@@ -110,9 +113,11 @@ public class ClientHandler implements Runnable {
     }
 
     private void readFromClient() {
+        System.out.println(user + " já efetuou login e vai começar a enviar mensagens!");
         try {
             while (true) {
-                String message = in.readUTF();
+                CliToServMsg message = null;               }
+                message.deserialize(in);
                 System.out.println("Received from client: " + message);
                 // Handle message (could add to queue or other data structure)
             }

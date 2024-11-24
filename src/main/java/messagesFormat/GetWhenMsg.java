@@ -1,14 +1,16 @@
 package messagesFormat;
 
-import java.io.DataOutputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.util.*;
-
+import enums.Enums.commandType;
 import enums.Enums.getCommand;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
+
 public class GetWhenMsg implements MsgInterfaces.CliToServMsg {
-    private static final byte OPCODE = (byte) getCommand.GETWHEN.ordinal();
+    private static final byte OPCODE = (byte) commandType.GET.ordinal();
+    private static final byte SUBCODE = (byte) getCommand.GETWHEN.ordinal();
     private String key;
     private String keyCond;
     private byte[] valueCond;
@@ -37,6 +39,7 @@ public class GetWhenMsg implements MsgInterfaces.CliToServMsg {
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
+        dos.writeByte(SUBCODE);
         dos.writeUTF(key);
         dos.writeUTF(keyCond);
 
@@ -51,6 +54,7 @@ public class GetWhenMsg implements MsgInterfaces.CliToServMsg {
     @Override
     public void serializeWithoutFlush(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
+        dos.writeByte(SUBCODE);
         dos.writeUTF(key);
         dos.writeUTF(keyCond);
 

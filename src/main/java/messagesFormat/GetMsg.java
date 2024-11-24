@@ -1,13 +1,15 @@
 package messagesFormat;
 
-import java.io.DataOutputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-
+import enums.Enums.commandType;
 import enums.Enums.getCommand;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 public class GetMsg implements MsgInterfaces.CliToServMsg {
-    private static final byte OPCODE = (byte) getCommand.GET.ordinal(); 
+    private static final byte OPCODE = (byte) commandType.GET.ordinal();
+    private static final byte SUBCODE = (byte) getCommand.GET.ordinal();
     private String key;
 
     public GetMsg() {}
@@ -22,13 +24,15 @@ public class GetMsg implements MsgInterfaces.CliToServMsg {
 
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
-        dos.writeByte(OPCODE); 
+        dos.writeByte(OPCODE);
+        dos.writeByte(SUBCODE);
         dos.writeUTF(key); 
     }
 
     @Override
     public void serializeWithoutFlush(DataOutputStream dos) throws IOException {
-        dos.writeByte(OPCODE); 
+        dos.writeByte(OPCODE);
+        dos.writeByte(SUBCODE);
         dos.writeUTF(key); 
     }
 

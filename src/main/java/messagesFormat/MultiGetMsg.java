@@ -1,14 +1,17 @@
 package messagesFormat;
 
-import java.io.DataOutputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.util.*;
-
+import enums.Enums.commandType;
 import enums.Enums.getCommand;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
 public class MultiGetMsg implements MsgInterfaces.CliToServMsg {
-    private static final byte OPCODE = (byte) getCommand.MULTIGET.ordinal(); 
+    private static final byte OPCODE = (byte) commandType.GET.ordinal();
+    private static final byte SUBCODE = (byte) getCommand.MULTIGET.ordinal();
     private Set<String> keySet;
 
     public MultiGetMsg() {}
@@ -24,6 +27,7 @@ public class MultiGetMsg implements MsgInterfaces.CliToServMsg {
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
+        dos.writeByte(SUBCODE);
         dos.writeInt(keySet.size());
         for (String key : keySet) {
             dos.writeUTF(key);
@@ -33,6 +37,7 @@ public class MultiGetMsg implements MsgInterfaces.CliToServMsg {
     @Override
     public void serializeWithoutFlush(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
+        dos.writeByte(SUBCODE);
         dos.writeInt(keySet.size());
         for (String key : keySet) {
             dos.writeUTF(key);

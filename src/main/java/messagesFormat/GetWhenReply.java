@@ -1,14 +1,16 @@
 package messagesFormat;
 
-import java.io.DataOutputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.util.*;
-
+import enums.Enums.commandType;
 import enums.Enums.getCommand;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
+
 public class GetWhenReply implements MsgInterfaces.ServToCliMsg {
-    private static final byte OPCODE = (byte) getCommand.GETWHEN.ordinal();
+    private static final byte OPCODE = (byte) commandType.GET.ordinal();
+    private static final byte SUBCODE = (byte) getCommand.GETWHEN.ordinal();
     private byte[] reply;
     private String info;
 
@@ -27,6 +29,7 @@ public class GetWhenReply implements MsgInterfaces.ServToCliMsg {
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
+        dos.writeByte(SUBCODE);
 
         if (reply != null) {
             dos.writeInt(reply.length);  // Write the length of reply
@@ -41,6 +44,7 @@ public class GetWhenReply implements MsgInterfaces.ServToCliMsg {
     @Override
     public void serializeWithoutFlush(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
+        dos.writeByte(SUBCODE);
 
         if (reply != null) {
             dos.writeInt(reply.length);
