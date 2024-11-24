@@ -3,11 +3,12 @@ package messagesFormat;
 import java.io.DataOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
-
+import enums.Enums.commandType;
 import enums.Enums.putCommand;
 
 public class PutReply implements MsgInterfaces.ServToCliMsg {
-    private static final byte OPCODE = (byte) putCommand.PUT.ordinal(); 
+    private static final byte OPCODE = (byte) commandType.PUT.ordinal();
+    private static final byte SUBCODE = (byte) putCommand.PUT.ordinal(); 
     private int reply;
     private String info;
 
@@ -27,6 +28,7 @@ public class PutReply implements MsgInterfaces.ServToCliMsg {
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
+        dos.writeByte(SUBCODE);
         dos.writeInt(reply);
         dos.writeUTF(info);
     }
@@ -34,6 +36,7 @@ public class PutReply implements MsgInterfaces.ServToCliMsg {
     @Override
     public void serializeWithoutFlush(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
+        dos.writeByte(SUBCODE);
         dos.writeInt(reply);
         dos.writeUTF(info);
     }
