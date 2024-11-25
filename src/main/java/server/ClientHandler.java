@@ -242,29 +242,22 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    // TODO ler a msg encapsulada verificar o comando e definir a prioridade dps enviar para o boundedBuffer
-    //  (talvez ter 3 boundedBuffers um para cada prioridade)
+    // Por enquanto a conversão de encapsulatedMessage para scheduledtask é feita nesta thread
+    // visto que ela têm pouco trabalho, pode-se no futuro criar uma thread que faça isso?
+
     private void handleInputBuffer(){
         try {
             while (true) {
                 EncapsulatedMsg<CliToServMsg> EncapsulatedMsg = inputBuffer.pop();
+                
+                ScheduledTask taskToSchedule = new ScheduledTask<EncapsulatedMsg>(EncapsulatedMsg);
 
                 TaskPriority priority = EncapsulatedMsg.getPriority();
+                taskToSchedule.setBasePriority(priority.getCode());
+                taskToSchedule.setRealPriority(priority.getCode());         
 
-                switch (priority){
-                    case HIGH:
-                        System.out.println("Comando de alta prioridade " + EncapsulatedMsg);
-                        Server.unscheduledHighPriority.push(EncapsulatedMsg);
-                        break;
-                    case MEDIUM:
-                        System.out.println("Comando de média prioridade " + EncapsulatedMsg);
-                        Server.unscheduledMediumPriority.push(EncapsulatedMsg);
-                        break;
-                    case LOW:
-                        System.out.println("Comando de baixa prioridade " + EncapsulatedMsg);
-                        Server.unscheduledLowPriority.push(EncapsulatedMsg);
-                        break;
-                }
+                System.out.println("Passei a tarefa do cliente para o main buffer " + taskToSchedule);
+                Server.unscheduledTaks.push(taskToSchedule);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();

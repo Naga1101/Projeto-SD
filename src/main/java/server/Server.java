@@ -31,9 +31,7 @@ public class Server {
     // variaveis relativas à gestão de dados
     private static DataBaseWithBatch db;
     private static final int BUFFERSIZE = 25;
-    public static BoundedBuffer<EncapsulatedMsg> unscheduledHighPriority = new BoundedBuffer<>(BUFFERSIZE);
-    public static BoundedBuffer<EncapsulatedMsg> unscheduledMediumPriority = new BoundedBuffer<>(BUFFERSIZE);
-    public static BoundedBuffer<EncapsulatedMsg> unscheduledLowPriority = new BoundedBuffer<>(BUFFERSIZE);
+    public static SortedBoundedBuffer<ScheduledTask> unscheduledTaks = new SortedBoundedBuffer<>(BUFFERSIZE);
 
 
     public static void main(String[] args) {

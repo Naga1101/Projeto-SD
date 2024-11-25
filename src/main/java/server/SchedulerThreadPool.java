@@ -3,9 +3,7 @@ package server;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static server.Server.unscheduledHighPriority;
-import static server.Server.unscheduledMediumPriority;
-import static server.Server.unscheduledLowPriority;
+import static server.Server.unscheduledTaks;
 
 public class SchedulerThreadPool {
     private final Thread[] schedulers;
@@ -51,9 +49,9 @@ public class SchedulerThreadPool {
         public void run() {
             System.out.println("Scheduler with name: " + Thread.currentThread().getName());
             while (true) {
-                EncapsulatedMsg task = null;
+                ScheduledTask task = new ScheduledTask<EncapsulatedMsg>();
                 try {
-                    task = unscheduledHighPriority.pop();
+                    task = unscheduledTaks.pop();
                 } catch (InterruptedException e) {
                     if (endPool) {
                         break;

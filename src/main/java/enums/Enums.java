@@ -130,8 +130,27 @@ public class Enums{
     }
 
     public enum TaskPriority {
-        HIGH,    // gets e puts simples e getwhen: como são as tarefas mais rápidas então têm maior prioridade
-        MEDIUM,  // multiget : é mais rápido que o multiput mas demora mais tempo que as tarefas simples
-        LOW     // multiput
+        HIGH(10),    // gets e puts simples e getwhen: como são as tarefas mais rápidas então têm maior prioridade
+        MEDIUM(6),  // multiget : é mais rápido que o multiput mas demora mais tempo que as tarefas simples
+        LOW(2);     // multiput
+        
+        private final int code;
+    
+        TaskPriority(int code) {
+            this.code = code;
+        }
+    
+        public int getCode() {
+            return code;
+        }
+
+        public static TaskPriority fromCode(int code) {
+            for (TaskPriority op : TaskPriority.values()) {
+                if (op.getCode() == code) {
+                    return op;
+                }
+            }
+            throw new IllegalArgumentException("Código de operação inválido: " + code);
+        }
     }
 }
