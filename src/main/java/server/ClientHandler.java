@@ -122,7 +122,7 @@ public class ClientHandler implements Runnable {
         // System.out.println(user + " já efetuou login e vai começar a enviar mensagens!");
         try {
             while (true) {
-                EncapsulatedMsg<CliToServMsg> EncapsulatedMsg = null;
+                EncapsulatedMsg<CliToServMsg> encapsulatedMsg = null;
 
                 byte opcodeByte = in.readByte();
                 activeTimer.resetCountdown();
@@ -153,25 +153,28 @@ public class ClientHandler implements Runnable {
                                 GetMsg getMsg = new GetMsg();
                                 getMsg.deserialize(in);
 
-                                EncapsulatedMsg = new EncapsulatedMsg<>(user, getMsg);
+                                encapsulatedMsg = new EncapsulatedMsg<>(user, getMsg);
+                                encapsulatedMsg.setPriority(TaskPriority.HIGH);
 
-                                System.out.println(EncapsulatedMsg);
+                                System.out.println(encapsulatedMsg);
                                 break;
                             case MULTIGET:
                                 MultiGetMsg multiGetMsg = new MultiGetMsg();
                                 multiGetMsg.deserialize(in);
 
-                                EncapsulatedMsg = new EncapsulatedMsg<>(user, multiGetMsg);
+                                encapsulatedMsg = new EncapsulatedMsg<>(user, multiGetMsg);
+                                encapsulatedMsg.setPriority(TaskPriority.MEDIUM);
 
-                                System.out.println(EncapsulatedMsg);
+                                System.out.println(encapsulatedMsg);
                                 break;
                             case GETWHEN:
                                 GetWhenMsg getWhenMsg = new GetWhenMsg();
                                 getWhenMsg.deserialize(in);
 
-                                EncapsulatedMsg = new EncapsulatedMsg<>(user, getWhenMsg);
+                                encapsulatedMsg = new EncapsulatedMsg<>(user, getWhenMsg);
+                                encapsulatedMsg.setPriority(TaskPriority.HIGH);
 
-                                System.out.println(EncapsulatedMsg);
+                                System.out.println(encapsulatedMsg);
                                 break;
                         }
 
@@ -194,24 +197,26 @@ public class ClientHandler implements Runnable {
                                 PutMsg putMsg = new PutMsg();
                                 putMsg.deserialize(in);
 
-                                EncapsulatedMsg = new EncapsulatedMsg<>(user, putMsg);
+                                encapsulatedMsg = new EncapsulatedMsg<>(user, putMsg);
+                                encapsulatedMsg.setPriority(TaskPriority.HIGH);                                
 
-                                System.out.println(EncapsulatedMsg);
+                                System.out.println(encapsulatedMsg);
                                 break;
                             case MULTIPUT:
                                 MultiPutMsg multiPutMsg = new MultiPutMsg();
                                 multiPutMsg.deserialize(in);
 
-                                EncapsulatedMsg = new EncapsulatedMsg<>(user, multiPutMsg);
+                                encapsulatedMsg = new EncapsulatedMsg<>(user, multiPutMsg);
+                                encapsulatedMsg.setPriority(TaskPriority.LOW);
 
-                                System.out.println(EncapsulatedMsg);
+                                System.out.println(encapsulatedMsg);
                                 break;
                         }
 
                         break;
                 }
 
-                if(EncapsulatedMsg != null) inputBuffer.push(EncapsulatedMsg);
+                if(encapsulatedMsg != null) inputBuffer.push(encapsulatedMsg);
             }
 
         } catch (IOException e) {
@@ -244,8 +249,22 @@ public class ClientHandler implements Runnable {
             while (true) {
                 EncapsulatedMsg<CliToServMsg> EncapsulatedMsg = inputBuffer.pop();
 
-                CliToServMsg msg = EncapsulatedMsg.getMessage();
-                Server.commandsUnschedule.push(EncapsulatedMsg);
+                TaskPriority priority = EncapsulatedMsg.getPriority();
+
+                switch (priority){
+                    case HIGH:
+                        System.out.println("Comando de alta prioridade " + EncapsulatedMsg);
+                        Server.unscheduledHighPriority.push(EncapsulatedMsg);
+                        break;
+                    case MEDIUM:
+                        System.out.println("Comando de média prioridade " + EncapsulatedMsg);
+                        Server.unscheduledMediumPriority.push(EncapsulatedMsg);
+                        break;
+                    case LOW:
+                        System.out.println("Comando de baixa prioridade " + EncapsulatedMsg);
+                        Server.unscheduledLowPriority.push(EncapsulatedMsg);
+                        break;
+                }
             }
         } catch (InterruptedException e) {
             e.printStackTrace();

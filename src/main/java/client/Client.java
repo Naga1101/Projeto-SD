@@ -166,6 +166,7 @@ public class Client implements AutoCloseable {
         }
     }
 
+    
     private void GetMenu() throws InterruptedException {
         boolean back = false;
         CliToServMsg msg;

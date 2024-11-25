@@ -37,10 +37,13 @@ public class EncapsulatedMsg<T extends IMessage>{
         this.user = user;
     }
 
-    public void setPriority(TaskPriority priotity) {
-        this.priority = priotity;
+    public void setPriority(TaskPriority priority) {
+        this.priority = priority;
     }
 
+    public TaskPriority getPriority() {
+        return this.priority;
+    }
     public void setMessage(T msg) {
         this.message = msg;
     }

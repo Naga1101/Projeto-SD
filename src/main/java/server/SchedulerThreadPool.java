@@ -3,7 +3,9 @@ package server;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static server.Server.commandsUnschedule;
+import static server.Server.unscheduledHighPriority;
+import static server.Server.unscheduledMediumPriority;
+import static server.Server.unscheduledLowPriority;
 
 public class SchedulerThreadPool {
     private final Thread[] schedulers;
@@ -51,7 +53,7 @@ public class SchedulerThreadPool {
             while (true) {
                 EncapsulatedMsg task = null;
                 try {
-                    task = commandsUnschedule.pop();
+                    task = unscheduledHighPriority.pop();
                 } catch (InterruptedException e) {
                     if (endPool) {
                         break;
