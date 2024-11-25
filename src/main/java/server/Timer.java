@@ -19,6 +19,7 @@ public class Timer {
         this.username = username;
     }
 
+    //rever funçao
     public void startCountdown() {
         if (countdownThread != null && countdownThread.isAlive()) {
             countdownThread.interrupt();

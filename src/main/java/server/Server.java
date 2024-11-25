@@ -132,7 +132,7 @@ public class Server {
         try {
             currentOnlineUsers--;
             waitingQueueCondition.signal();
-            System.out.println("Client disconnected: " + currentOnlineUsers);
+            System.out.println("Current online users: " + currentOnlineUsers);
             System.out.println(usersAuthenticator);
         } finally {
             waitingUsersLock.unlock();

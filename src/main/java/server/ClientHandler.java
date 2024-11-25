@@ -10,7 +10,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public class ClientHandler implements Runnable {
+public class ClientHandler implements Runnable, AutoCloseable {
     private Socket clientSocket;
     private DataInputStream in;
     private DataOutputStream out;
@@ -136,6 +136,13 @@ public class ClientHandler implements Runnable {
                 }
 
                 switch(opcode){
+                    case EXIT:
+                        System.out.println("Cliente " + user + " desconectou-se.");
+                        usersAuthenticator.logUserOut(user);
+                        Server.clientDisconnected();
+                        close();
+                        return;
+
                     case GET:
                         byte commandGetCodeByte = in.readByte();
                         activeTimer.resetCountdown();
@@ -260,6 +267,19 @@ public class ClientHandler implements Runnable {
                 Server.unscheduledTaks.push(taskToSchedule);
             }
         } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void close() {
+        try {
+            if (activeTimer != null) activeTimer.stopCountdown();
+            if (in != null) in.close();
+            if (out != null) out.close();
+            if (clientSocket != null && !clientSocket.isClosed()) clientSocket.close();
+            System.out.println("Recursos de ClientHandler fechados corretamente.");
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

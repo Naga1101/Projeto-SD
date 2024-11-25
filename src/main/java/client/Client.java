@@ -150,6 +150,8 @@ public class Client implements AutoCloseable {
                             PutMenu();
                             break;
                         case EXIT:
+                            CliToServMsg exitMsg = new ExitMsg();
+                            sendBuffer.push(exitMsg);
                             exit = true;
                             break;
                         default:
