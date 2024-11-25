@@ -1,5 +1,6 @@
 package server;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -23,21 +24,33 @@ public class SortedBoundedBuffer<T extends ScheduledTask> {
     }
 
     public void push(T item) throws InterruptedException {
+        long currentTimestamp = Instant.now().toEpochMilli();
+        System.out.println("AntigaTimestamp: " + currentTimestamp + " | Currenttimesamp: " + item.getScheduledTimestamp() + " | Conta: " + (currentTimestamp - item.getScheduledTimestamp()));
         lock.lock();
         try {
             while (size >= capacity) { // full
                 notFull.await();
             }
 
+            for (int i = 0; i < size; i++) {
+                list.get(i).setRealPriority(
+                        list.get(i).getRealPriority() + (currentTimestamp - list.get(i).getScheduledTimestamp())
+                );
+            }
+
+            list.sort(Comparator.comparing(T::getRealPriority).reversed());
+
+            item.setRealPriority(item.getRealPriority() + (currentTimestamp - item.getScheduledTimestamp()));
+
             int index = 0;
             while (index < size && item.getRealPriority() <= list.get(index).getRealPriority()) {
                 index++;
             }
 
-            list.add(index, item);  
+            list.add(index, item);
             size++;
 
-            notEmpty.signal(); 
+            notEmpty.signal();
         } finally {
             lock.unlock();
         }

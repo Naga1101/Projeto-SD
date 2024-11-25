@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter;
 public class ScheduledTask<T>{
     private T task;
     private int basePriority;
-    private int realPriority;
+    private long realPriority;
     private long scheduledTimestamp;
 
     //to be filled in deserialize
@@ -30,7 +30,7 @@ public class ScheduledTask<T>{
         return this.basePriority;
     }
 
-    public int getRealPriority(){
+    public long getRealPriority(){
         return this.realPriority;
     }
 
@@ -46,7 +46,7 @@ public class ScheduledTask<T>{
         this.basePriority = basePriority;
     }
 
-    public void setRealPriority(int realPriority){
+    public void setRealPriority(long realPriority){
         this.realPriority = realPriority;
     }
 
@@ -65,10 +65,10 @@ public class ScheduledTask<T>{
     @Override
     public ScheduledTask<T> clone() {
         ScheduledTask<T> clonedTask = new ScheduledTask<>();
-        clonedTask.setMessage(this.task); // Note: Ensure T is immutable or handles cloning itself
+        clonedTask.setMessage(this.task);
         clonedTask.setBasePriority(this.basePriority);
         clonedTask.setRealPriority(this.realPriority);
-        clonedTask.setScheduledTimestamp(); // Assign a new timestamp
+        clonedTask.setScheduledTimestamp();
         return clonedTask;
     }
 }
