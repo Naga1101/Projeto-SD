@@ -32,14 +32,6 @@ public class SortedBoundedBuffer<T extends ScheduledTask> {
                 notFull.await();
             }
 
-            for (int i = 0; i < size; i++) {
-                list.get(i).setRealPriority(
-                        list.get(i).getRealPriority() + (currentTimestamp - list.get(i).getScheduledTimestamp())
-                );
-            }
-
-            list.sort(Comparator.comparing(T::getRealPriority).reversed());
-
             item.setRealPriority(item.getRealPriority() + (currentTimestamp - item.getScheduledTimestamp()));
 
             int index = 0;
@@ -72,4 +64,23 @@ public class SortedBoundedBuffer<T extends ScheduledTask> {
             lock.unlock();
         }
     }
+
+    public void sortBuffer(){  // dar sort a cada 10 tarefas pop
+        long currentTimestamp = Instant.now().toEpochMilli();
+        lock.lock();
+        try{
+            for (int i = 0; i < size; i++) {
+                list.get(i).setRealPriority(
+                        list.get(i).getRealPriority() + (currentTimestamp - list.get(i).getScheduledTimestamp())
+                );
+            }
+
+            list.sort(Comparator.comparing(T::getRealPriority).reversed());
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    //TODO: fazer aqui uma verificação se já chegou ao limite da prioridade
+    // se sim ou passam para a frente do buffer ou adiciono a uma lista de prioridades
 }

@@ -154,4 +154,29 @@ public class Enums{
             throw new IllegalArgumentException("Código de operação inválido: " + code);
         }
     }
+
+    public enum WorkerStatus{
+        FREE(0),
+        WORKING(1),
+        MAXCAPPED(2);
+
+        private final int code;
+
+        WorkerStatus(int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
+
+        public static WorkerStatus fromCode(int code) {
+            for (WorkerStatus op : WorkerStatus.values()) {
+                if (op.getCode() == code) {
+                    return op;
+                }
+            }
+            throw new IllegalArgumentException("Código de operação inválido: " + code);
+        }
+    }
 }

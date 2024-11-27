@@ -12,6 +12,7 @@ public class SchedulerThreadPool {
 
     private boolean endPool = false;
     private int activeTaskCount = 0;
+    private int taskCount = 0;
 
     public SchedulerThreadPool(int numberOfThreads, int bufferSize) {
         schedulers = new Thread[numberOfThreads];
@@ -44,6 +45,10 @@ public class SchedulerThreadPool {
         }
     }
 
+    private boolean verifyIfSort(){
+        return taskCount % 10 == 0;
+    }
+
     private class Worker extends Thread {
         @Override
         public void run() {
@@ -51,6 +56,8 @@ public class SchedulerThreadPool {
             while (true) {
                 ScheduledTask task = new ScheduledTask<EncapsulatedMsg>();
                 try {
+                    taskCount++;
+                    if(verifyIfSort())  unscheduledTaks.sortBuffer();
                     task = unscheduledTaks.pop();
                 } catch (InterruptedException e) {
                     if (endPool) {

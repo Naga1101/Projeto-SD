@@ -1,5 +1,6 @@
 package utils;
 
+import java.io.Closeable;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -61,4 +62,13 @@ public class BoundedBuffer<T> {
  		}
  		return item;
  	}
+
+ 	public int size() {
+		 lock.lock();
+		 try{
+			return size;
+		 } finally {
+			 lock.unlock();
+		 }
+	}
  }
