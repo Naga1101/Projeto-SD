@@ -8,6 +8,7 @@ public class Timer {
     // precisa disto para conseguir colocar o user offline se exceder o timeout
     private UsersAuthenticator usersAuthenticator;
     private String username;
+    private boolean isStopped = false;
 
     public Timer(Runnable onTimeout, UsersAuthenticator usersAuthenticator) {
         this.onTimeout = onTimeout;
@@ -19,22 +20,28 @@ public class Timer {
         this.username = username;
     }
 
-    //rever funçao
     public void startCountdown() {
         if (countdownThread != null && countdownThread.isAlive()) {
             countdownThread.interrupt();
         }
 
+        isStopped = false;
         countdownThread = new Thread(() -> {
             try {
                 Thread.sleep(TIMEOUT);
-                if(usersAuthenticator != null) {
+                if(!isStopped && usersAuthenticator != null) {
                     int reply = usersAuthenticator.logUserOut(username);
                 }
-                Server.clientDisconnected();
-                onTimeout.run();
+
+                if (!isStopped) {
+                    Server.clientDisconnected();
+                    onTimeout.run();
+                }
+
             } catch (InterruptedException e) {
-                System.out.println("User is active!");
+                if (!isStopped) {
+                    System.out.println("User is active!");
+                }
             }
         });
         countdownThread.start();
@@ -46,6 +53,7 @@ public class Timer {
     }
 
     public void stopCountdown() {
+        isStopped = true;
         if (countdownThread != null && countdownThread.isAlive()) {
             countdownThread.interrupt();
         }
