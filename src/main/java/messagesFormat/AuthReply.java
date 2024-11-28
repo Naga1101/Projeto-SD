@@ -31,6 +31,7 @@ public class AuthReply implements MsgInterfaces.ServToCliMsg {
 
     @Override
     public byte getSubcode() {
+        return 0;
     }
 
     @Override
