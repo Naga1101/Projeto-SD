@@ -24,6 +24,16 @@ public class MultiPutMsg implements MsgInterfaces.CliToServMsg {
         this.pairs = new HashMap<>(msg.pairs);
     }
 
+    @Override
+    public byte getOpcode() {
+        return OPCODE;
+    }
+
+    @Override
+    public byte getSubcode() {
+        return SUBCODE;
+    }
+
     // Serialization method
     @Override
     public void serialize(DataOutputStream dos) throws IOException {

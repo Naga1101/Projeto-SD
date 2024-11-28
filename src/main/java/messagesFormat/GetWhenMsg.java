@@ -37,6 +37,16 @@ public class GetWhenMsg implements MsgInterfaces.CliToServMsg {
     }
 
     @Override
+    public byte getOpcode() {
+        return OPCODE;
+    }
+
+    @Override
+    public byte getSubcode() {
+        return SUBCODE;
+    }
+
+    @Override
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
         dos.writeByte(SUBCODE);

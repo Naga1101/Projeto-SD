@@ -24,6 +24,16 @@ public class LoginMsg implements MsgInterfaces.CliToServMsg {
     }
 
     @Override
+    public byte getOpcode() {
+        return OPCODE;
+    }
+
+    @Override
+    public byte getSubcode() {
+        return 0;
+    }
+
+    @Override
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE); 
         dos.writeUTF(username); 

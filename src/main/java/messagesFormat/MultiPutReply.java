@@ -20,10 +20,20 @@ public class MultiPutReply implements MsgInterfaces.ServToCliMsg {
         this.info = info;
     }
 
-     public MultiPutReply(MultiPutReply msg) {
-     this.reply = msg.reply;
-     this.info = msg.info;
-     }
+    public MultiPutReply(MultiPutReply msg) {
+        this.reply = msg.reply;
+        this.info = msg.info;
+    }
+
+     @Override
+    public byte getOpcode() {
+        return OPCODE;
+    }
+
+    @Override
+    public byte getSubcode() {
+        return SUBCODE;
+    }
 
     @Override
     public void serialize(DataOutputStream dos) throws IOException {

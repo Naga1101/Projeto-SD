@@ -14,6 +14,16 @@ public class ExitMsg implements CliToServMsg {
     public ExitMsg() {}
 
     @Override
+    public byte getOpcode() {
+        return OPCODE;
+    }
+
+    @Override
+    public byte getSubcode() {
+        return 0;
+    }
+
+    @Override
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
     }
