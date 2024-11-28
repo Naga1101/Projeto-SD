@@ -46,9 +46,9 @@ public class Worker implements Runnable {
             while(true){
                 ScheduledTask task = tasks.pop();
 
-                System.out.println(Thread.currentThread().getName() + " têm estado antes do set: " + getStatus() + " está a executar a tarefa");
+                //System.out.println(Thread.currentThread().getName() + " têm estado antes do set: " + getStatus() + " está a executar a tarefa");
                 if(getTaskCount() == 0) setStatus(0);
-                System.out.println(Thread.currentThread().getName() + " têm estado depois do set: " + getStatus() + " está a executar a tarefa");
+                //System.out.println(Thread.currentThread().getName() + " têm estado depois do set: " + getStatus() + " está a executar a tarefa");
 
                 executor.executeTask(task);
             }       

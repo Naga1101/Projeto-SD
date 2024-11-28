@@ -23,6 +23,16 @@ public class AuthReply implements MsgInterfaces.ServToCliMsg {
         this.info = msg.info;
     }
 
+
+    @Override
+    public byte getOpcode() {
+        return OPCODE;
+    }
+
+    @Override
+    public byte getSubcode() {
+    }
+
     @Override
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);

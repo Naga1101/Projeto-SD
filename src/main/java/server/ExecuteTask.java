@@ -11,5 +11,8 @@ public class ExecuteTask {
         // Now you can process the command
         System.out.println("Executing command for user: " + encapsulatedMsg.getUser());
         System.out.println("Command: " + command.toString());
+
+        byte opcode = command.getOpcode();
+        byte subcode = command.getSubcode();
     }
 }
