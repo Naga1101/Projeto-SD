@@ -133,7 +133,8 @@ public class Enums{
     public enum TaskPriority {
         HIGH(10),    // gets e puts simples e getwhen: como são as tarefas mais rápidas então têm maior prioridade
         MEDIUM(6),  // multiget : é mais rápido que o multiput mas demora mais tempo que as tarefas simples
-        LOW(2);     // multiput
+        LOW(2),     // multiput
+        NULL(0);    // as tarefas realizadas não precisam de priority
         
         private final int code;
     

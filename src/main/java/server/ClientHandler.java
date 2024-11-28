@@ -263,7 +263,7 @@ public class ClientHandler implements Runnable, AutoCloseable {
                 taskToSchedule.setBasePriority(priority.getCode());
                 taskToSchedule.setRealPriority(priority.getCode());         
 
-                System.out.println("Passei a tarefa do cliente para o main buffer " + taskToSchedule);
+                //System.out.println("Passei a tarefa do cliente para o main buffer " + taskToSchedule);
                 Server.unscheduledTaks.push(taskToSchedule);
             }
         } catch (InterruptedException e) {

@@ -1,12 +1,16 @@
 package server;
 
+import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+
+import enums.Enums.WorkerStatus;
 
 import static server.Server.unscheduledTaks;
 
 public class SchedulerThreadPool {
     private final Thread[] schedulers;
+    private final List<Worker> workers;
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition allTasksFinished = lock.newCondition();
 
@@ -14,10 +18,12 @@ public class SchedulerThreadPool {
     private int activeTaskCount = 0;
     private int taskCount = 0;
 
-    public SchedulerThreadPool(int numberOfThreads, int bufferSize) {
+    public SchedulerThreadPool(int numberOfThreads, int bufferSize, List<Worker> workers) {
+        this.workers = workers;
         schedulers = new Thread[numberOfThreads];
         for (int i = 0; i < numberOfThreads; i++) {
-            schedulers[i] = new Worker();
+            Scheduler scheduler = new Scheduler();
+            schedulers[i] = new Thread(scheduler, "Scheduler-" + i);
             schedulers[i].start();
         }
     }
@@ -26,8 +32,8 @@ public class SchedulerThreadPool {
         lock.lock();
         try {
             endPool = true;
-            for (Thread worker : schedulers) {
-                worker.interrupt();
+            for (Thread Scheduler : schedulers) {
+                Scheduler.interrupt();
             }
         } finally {
             lock.unlock();
@@ -49,7 +55,7 @@ public class SchedulerThreadPool {
         return taskCount % 10 == 0;
     }
 
-    private class Worker extends Thread {
+    private class Scheduler extends Thread {
         @Override
         public void run() {
             System.out.println("Scheduler with name: " + Thread.currentThread().getName());
@@ -67,24 +73,29 @@ public class SchedulerThreadPool {
                 }
 
                 if (task != null) {
-                    try {
-                        lock.lock();
-                        try {
-                            System.out.println("Scheduling task: " + task + " on " + Thread.currentThread().getName());
-                            // assign priority level to the task
-                            activeTaskCount++;
-                        } finally {
-                            lock.unlock();
+                    Worker bestWorker = null;
+
+                    for(Worker worker : workers){
+                        if(worker.getStatus() == WorkerStatus.FREE){
+                            bestWorker = worker;
+                            break;
+                        } else if(worker.getStatus() == WorkerStatus.WORKING){
+                            if(bestWorker == null || bestWorker.getTaskCount() > worker.getTaskCount()){
+                                bestWorker = worker;
+                            }
                         }
-                    } finally {
-                        lock.lock();
-                        try {
-                            System.out.println("Task: "  + task + " scheduled on " + Thread.currentThread().getName());
-                            activeTaskCount--;
-                            System.out.println("Nº of active tasks: " + activeTaskCount);
-                        } finally {
-                            lock.unlock();
+                    }
+
+                    if(bestWorker != null){
+                        try{
+                            bestWorker.setStatus(1);
+                            bestWorker.getTasks().push(task);
+                        } catch(Exception e){
+                            System.out.println(getName() + e);
                         }
+                    }
+                    else {
+                        System.out.println("não existem workers disponiveis");
                     }
                 }
             }

@@ -25,7 +25,7 @@ public class SortedBoundedBuffer<T extends ScheduledTask> {
 
     public void push(T item) throws InterruptedException {
         long currentTimestamp = Instant.now().toEpochMilli();
-        System.out.println("AntigaTimestamp: " + currentTimestamp + " | Currenttimesamp: " + item.getScheduledTimestamp() + " | Conta: " + (currentTimestamp - item.getScheduledTimestamp()));
+        //System.out.println("AntigaTimestamp: " + currentTimestamp + " | Currenttimesamp: " + item.getScheduledTimestamp() + " | Conta: " + (currentTimestamp - item.getScheduledTimestamp()));
         lock.lock();
         try {
             while (size >= capacity) { // full

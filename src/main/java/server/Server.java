@@ -3,8 +3,10 @@ package server;
 import utils.BoundedBuffer;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,6 +32,8 @@ public class Server {
 
     // variaveis relativas à gestão de dados
     private static DataBaseWithBatch db;
+    private static int numWorkers;
+    private static int numSchedulers;
     private static final int BUFFERSIZE = 25;
     public static SortedBoundedBuffer<ScheduledTask> unscheduledTaks = new SortedBoundedBuffer<>(BUFFERSIZE);
 
@@ -47,8 +51,14 @@ public class Server {
 
         System.out.println("Insira o número de clientes que podem estar conectados em simultâneo: ");
         maxConcurrentUsers = scanner.nextInt();
-        System.out.println("O número máximo de clientes é: " + maxConcurrentUsers);
+        System.out.println("Insira o número de workers que pretende: ");
+        numWorkers = scanner.nextInt();
+        System.out.println("Insira o número de schedulers que pretende: ");
+        numSchedulers = scanner.nextInt();
         scanner.close();
+
+        System.out.println("O server vai ter um total de " + numWorkers + " workers, "
+         + numSchedulers + " schedulers e podem existir no máximo " + maxConcurrentUsers + " clientes em simutâneo!");
 
         backgroundLoop();
 
@@ -145,7 +155,19 @@ public class Server {
         Logs databaseLogFile = new Logs();
         db = new DataBaseWithBatch(databaseLogFile, 50);
 
-        SchedulerThreadPool schedulerPool = new SchedulerThreadPool(10, 30);
+        List<Worker> workers = new ArrayList<>(numWorkers); 
+        List<Thread> workerThreads = new ArrayList<>(numWorkers);
+
+        for (int i = 0; i < numWorkers; i++) {
+            Worker worker = new Worker(5);
+            workers.add(worker);
+
+            Thread thread = new Thread(worker, "Worker-" + i);
+            workerThreads.add(thread);
+            thread.start();
+        }
+
+        SchedulerThreadPool schedulerPool = new SchedulerThreadPool(numSchedulers, 30, workers);
         try {
             schedulerPool.awaitTaskPool();
         } catch (InterruptedException e) {
