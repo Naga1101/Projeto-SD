@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 public class SavedResponse {
-    private String command;
+    private Object command;
     private String requestedTime;
     private String arrivedTime;
     private String key;
@@ -16,7 +16,24 @@ public class SavedResponse {
 
     public SavedResponse() { }
 
-    public SavedResponse(String command, String key, byte[] data, long requestedTime, long arrivedTime) {
+    public SavedResponse(Object command, long requestedTime, long arrivedTime) {
+        this.command = command;
+        this.key = "key-set";
+        this.data = "data-saved".getBytes();
+        this.requestedTime = formatTimestamp(requestedTime);
+        this.arrivedTime = formatTimestamp(arrivedTime);
+    }
+
+
+    public SavedResponse(Object command, String key, long requestedTime, long arrivedTime) {
+        this.command = command;
+        this.key = key;
+        this.data = "data-saved".getBytes();
+        this.requestedTime = formatTimestamp(requestedTime);
+        this.arrivedTime = formatTimestamp(arrivedTime);
+    }
+
+    public SavedResponse(Object command, String key, byte[] data, long requestedTime, long arrivedTime) {
         this.command = command;
         this.key = key;
         this.data = data;
@@ -24,7 +41,7 @@ public class SavedResponse {
         this.arrivedTime = formatTimestamp(arrivedTime);
     }
 
-    public SavedResponse(String command, Map<String, byte[]> multigetData, long requestedTime, long arrivedTime) {
+    public SavedResponse(Object command, Map<String, byte[]> multigetData, long requestedTime, long arrivedTime) {
         this.command = command;
         this.multigetData = multigetData;
         this.requestedTime = formatTimestamp(requestedTime);
@@ -52,6 +69,11 @@ public class SavedResponse {
                   .append(new String(data)); // Convert byte[] data to String
         }
 
+        if (key != null && data == null) {
+            result.append(" | ").append(key).append(" | ")
+                  .append("null"); // Convert byte[] data to String
+        }
+
         if (multigetData != null && !multigetData.isEmpty()) {
             for (Map.Entry<String, byte[]> entry : multigetData.entrySet()) {
                 result.append("\n").append(command).append(" | ")
@@ -65,7 +87,7 @@ public class SavedResponse {
         return result.toString();
     }
 
-    public String getCommand() {
+    public Object getCommand() {
         return command;
     }
 

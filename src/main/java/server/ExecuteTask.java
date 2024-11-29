@@ -92,7 +92,7 @@ public class ExecuteTask {
 
                             Server.db.put(key, data);
 
-                            reply = new PutReply(arrivalTimestamp);
+                            reply = new PutReply(key, arrivalTimestamp);
 
                             System.out.println(reply);
                         } else {

@@ -30,7 +30,8 @@ public class Enums{
         AUX0(0),
         GET(1),
         PUT(2),
-        EXIT(3);
+        REPLYS(3),
+        EXIT(4);
     
         private final int code;
     

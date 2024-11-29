@@ -108,7 +108,7 @@ public class MultiGetReply implements MsgInterfaces.ServToCliMsg {
         this.info = info;
     }
 
-    public long getArrivalTimestamp(){
+    public long getRequestedTimestamp(){
         return this.arrivalTimestamp;
     }
 

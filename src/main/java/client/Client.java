@@ -1,6 +1,7 @@
 package client;
 
 import enums.Enums.autenticacao;
+import enums.Enums.commandType;
 import enums.Enums.getCommand;
 import enums.Enums.optionCommand;
 import enums.Enums.putCommand;
@@ -8,6 +9,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +49,13 @@ public class Client implements AutoCloseable {
             
                 if(loggedIn){
                     Thread sendThread = new Thread(() -> sendMessage(out));
-                    Thread receiveThread = new Thread(() -> receiveMessage(in));
+                    Thread receiveThread = new Thread(() -> {
+                        try {
+                            receiveMessage(in);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
 
                     sendThread.start();
                     receiveThread.start();
@@ -149,6 +157,9 @@ public class Client implements AutoCloseable {
                             break;
                         case PUT:
                             PutMenu();
+                            break;
+                        case REPLYS:
+                            PrintSavedReplys();
                             break;
                         case EXIT:
                             CliToServMsg exitMsg = new ExitMsg();
@@ -294,11 +305,143 @@ public class Client implements AutoCloseable {
         }
     }
 
-    private void receiveMessage(DataInputStream in) {
-        while (!turnOff) {
-            int i = 0;
+    private void receiveMessage(DataInputStream in) throws IOException {
+        try {
+            while (!turnOff) {
+                SavedResponse newResponse = null;
+                byte opcodeByte = in.readByte();
+                long arrivedTime = Instant.now().toEpochMilli();
+    
+                commandType opcode;
+                try {
+                    opcode = commandType.fromCode(opcodeByte);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("Opcode inválido recebido: " + opcodeByte);
+                    continue;
+                }
+    
+                switch (opcode) {
+                    case GET:
+                        byte commandGetCodeByte = in.readByte();
+                        getCommand commandGetCode;
+                        try {
+                            commandGetCode = getCommand.fromCode(commandGetCodeByte);
+                        } catch (IllegalArgumentException e) {
+                            System.out.println("commandCode inválido recebido: " + commandGetCodeByte);
+                            continue;
+                        }
+    
+                        switch (commandGetCode) {
+                            case GET:
+                                GetReply getReply = new GetReply();
+                                try {
+                                    getReply.deserialize(in);
+                                    newResponse = new SavedResponse(commandGetCode, getReply.getKey(),
+                                            getReply.getReply(), getReply.getRequestedTimestamp(), arrivedTime);
+                                } catch (IOException e) {
+                                    System.out.println("Erro ao desserializar GetReply: " + e.getMessage());
+                                    continue;
+                                }
+                                break;
+    
+                            case MULTIGET:
+                                MultiGetReply multiGetReply = new MultiGetReply();
+                                try {
+                                    multiGetReply.deserialize(in);
+                                    newResponse = new SavedResponse(commandGetCode, multiGetReply.getReply(),
+                                            multiGetReply.getRequestedTimestamp(), arrivedTime);
+                                } catch (IOException e) {
+                                    System.out.println("Erro ao desserializar MultiGetReply: " + e.getMessage());
+                                    continue;
+                                }
+                                break;
+    
+                            case GETWHEN:
+                                GetWhenReply getWhenReply = new GetWhenReply();
+                                try {
+                                    getWhenReply.deserialize(in);
+                                    newResponse = new SavedResponse(commandGetCode, getWhenReply.getKey(),
+                                            getWhenReply.getReply(), getWhenReply.getRequestedTimestamp(), arrivedTime);
+                                } catch (IOException e) {
+                                    System.out.println("Erro ao desserializar GetWhenReply: " + e.getMessage());
+                                    continue;
+                                }
+                                break;
+    
+                            default:
+                                System.out.println("Unhandled GET command: " + commandGetCode);
+                                break;
+                        }
+                        break;
+    
+                    case PUT:
+                        byte commandPutCodeByte = in.readByte();
+                        putCommand commandPutCode;
+                        try {
+                            commandPutCode = putCommand.fromCode(commandPutCodeByte);
+                        } catch (IllegalArgumentException e) {
+                            System.out.println("commandCode inválido recebido: " + commandPutCodeByte);
+                            continue;
+                        }
+    
+                        switch (commandPutCode) {
+                            case PUT:
+                                PutReply putReply = new PutReply();
+                                try {
+                                    putReply.deserialize(in);
+                                    newResponse = new SavedResponse(commandPutCode, putReply.getKey(),
+                                            putReply.getRequestedTimestamp(), arrivedTime);
+                                } catch (IOException e) {
+                                    System.out.println("Erro ao desserializar PutReply: " + e.getMessage());
+                                    continue;
+                                }
+                                break;
+    
+                            case MULTIPUT:
+                                MultiPutReply multiPutReply = new MultiPutReply();
+                                try {
+                                    multiPutReply.deserialize(in);
+                                    newResponse = new SavedResponse(commandPutCode,
+                                            multiPutReply.getRequestedTimestamp(), arrivedTime);
+                                } catch (IOException e) {
+                                    System.out.println("Erro ao desserializar MultiPutReply: " + e.getMessage());
+                                    continue;
+                                }
+                                break;
+    
+                            default:
+                                System.out.println("Unhandled PUT command: " + commandPutCode);
+                                break;
+                        }
+                        break;
+    
+                    default:
+                        System.out.println("Unhandled opcode: " + opcode);
+                        break;
+                }
+    
+                if (newResponse != null) {
+                    arrivedReplys.addLast(newResponse);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Erro ao receber mensagem: " + e.getMessage());
+            throw e;
         }
     }
+
+    private void PrintSavedReplys() {
+        if (arrivedReplys.isEmpty()) {
+            System.out.println("Ainda não chegou nenhuma resposta aos pedidos realizados.");
+        } else {
+            System.out.println("");
+            System.out.println("Comando | Data de Pedido | Data de Chegada |    Chave(s)   |    Data");
+            for (SavedResponse response : arrivedReplys) {
+                System.out.println(response.toString());
+            }
+        }
+    }
+    
 
     @Override
     public void close() {

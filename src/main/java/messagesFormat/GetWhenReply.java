@@ -105,7 +105,11 @@ public class GetWhenReply implements MsgInterfaces.ServToCliMsg {
         return this.info;
     }
 
-    public long getArrivalTimestamp(){
+    public String getKey() {
+        return this.key;
+    }
+
+    public long getRequestedTimestamp(){
         return this.arrivalTimestamp;
     }
 

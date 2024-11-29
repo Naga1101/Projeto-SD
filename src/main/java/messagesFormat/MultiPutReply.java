@@ -13,6 +13,7 @@ public class MultiPutReply implements MsgInterfaces.ServToCliMsg {
     private long arrivalTimestamp;
     private String info;
 
+    public MultiPutReply() {}
 
     public MultiPutReply(long arrivalTimestamp) {
         this.reply = 0;
@@ -77,7 +78,7 @@ public class MultiPutReply implements MsgInterfaces.ServToCliMsg {
         return this.info;
     }
 
-    public long getArrivalTimestamp(){
+    public long getRequestedTimestamp(){
         return this.arrivalTimestamp;
     }
 

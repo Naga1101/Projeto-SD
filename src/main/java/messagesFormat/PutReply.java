@@ -10,24 +10,29 @@ public class PutReply implements MsgInterfaces.ServToCliMsg {
     private static final byte OPCODE = (byte) commandType.PUT.ordinal();
     private static final byte SUBCODE = (byte) putCommand.PUT.ordinal(); 
     private int reply;
+    private String key;
     private long arrivalTimestamp;
     private String info;
 
+    public PutReply() { }
 
-    public PutReply(long arrivalTimestamp) {
+    public PutReply(String key, long arrivalTimestamp) {
         this.reply = 0;
+        this.key = key;
         this.arrivalTimestamp = arrivalTimestamp;
         this.info = "success";
     }
 
-    public PutReply(int reply, long arrivalTimestamp, String info) {
+    public PutReply(String key, int reply, long arrivalTimestamp, String info) {
         this.reply = reply;
+        this.key = key;
         this.arrivalTimestamp = arrivalTimestamp;
         this.info = info;
     }
 
     public PutReply(PutReply msg) {
         this.reply = msg.reply;
+        this.key = msg.key;
         this.arrivalTimestamp = msg.arrivalTimestamp;
         this.info = msg.info;
     }
@@ -47,6 +52,7 @@ public class PutReply implements MsgInterfaces.ServToCliMsg {
         dos.writeByte(OPCODE);
         dos.writeByte(SUBCODE);
         dos.writeInt(reply);
+        dos.writeUTF(key);
         dos.writeLong(arrivalTimestamp);
         dos.writeUTF(info);
     }
@@ -56,6 +62,7 @@ public class PutReply implements MsgInterfaces.ServToCliMsg {
         dos.writeByte(OPCODE);
         dos.writeByte(SUBCODE);
         dos.writeInt(reply);
+        dos.writeUTF(key);
         dos.writeLong(arrivalTimestamp);
         dos.writeUTF(info);
     }
@@ -63,6 +70,7 @@ public class PutReply implements MsgInterfaces.ServToCliMsg {
     @Override
     public void deserialize(DataInputStream dis) throws IOException {
         this.reply = dis.readInt();
+        this.key = dis.readUTF();
         this.arrivalTimestamp = dis.readLong();
         this.info = dis.readUTF();
     }
@@ -77,7 +85,11 @@ public class PutReply implements MsgInterfaces.ServToCliMsg {
         return this.info;
     }
 
-    public long getArrivalTimestamp(){
+    public String getKey() {
+        return this.key;
+    }
+
+    public long getRequestedTimestamp(){
         return this.arrivalTimestamp;
     }
 
