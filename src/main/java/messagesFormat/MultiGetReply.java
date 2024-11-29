@@ -2,7 +2,6 @@ package messagesFormat;
 
 import enums.Enums.commandType;
 import enums.Enums.getCommand;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -12,22 +11,26 @@ import java.util.Map;
 public class MultiGetReply implements MsgInterfaces.ServToCliMsg {
     private static final byte OPCODE = (byte) commandType.GET.ordinal();
     private static final byte SUBCODE = (byte) getCommand.MULTIGET.ordinal();
+    private long arrivalTimestamp;
     private Map<String, byte[]> reply;
     private String info; // error info?
 
     public MultiGetReply() {}
 
-    public MultiGetReply(Map<String, byte[]> reply) {
+    public MultiGetReply(long arrivalTimestamp, Map<String, byte[]> reply) {
+        this.arrivalTimestamp = arrivalTimestamp;
         this.reply = reply;
         this.info = "";
     }
 
-    public MultiGetReply(Map<String, byte[]> reply, String info) {
+    public MultiGetReply(long arrivalTimestamp, Map<String, byte[]> reply, String info) {
+        this.arrivalTimestamp = arrivalTimestamp;
         this.reply = reply;
         this.info = info;
     }
 
     public MultiGetReply(MultiGetReply msg) {
+        this.arrivalTimestamp = msg.arrivalTimestamp;
         this.reply = msg.reply;
         this.info = msg.info;
     }
@@ -46,6 +49,7 @@ public class MultiGetReply implements MsgInterfaces.ServToCliMsg {
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
         dos.writeByte(SUBCODE);
+        dos.writeLong(arrivalTimestamp);
         dos.writeInt(reply.size());
         for (Map.Entry<String, byte[]> entry : reply.entrySet()) {
             dos.writeUTF(entry.getKey());
@@ -60,6 +64,7 @@ public class MultiGetReply implements MsgInterfaces.ServToCliMsg {
     public void serializeWithoutFlush(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
         dos.writeByte(SUBCODE);
+        dos.writeLong(arrivalTimestamp);
         dos.writeInt(reply.size());
         for (Map.Entry<String, byte[]> entry : reply.entrySet()) {
             dos.writeUTF(entry.getKey());
@@ -72,6 +77,7 @@ public class MultiGetReply implements MsgInterfaces.ServToCliMsg {
 
     @Override
     public void deserialize(DataInputStream dis) throws IOException {
+        this.arrivalTimestamp = dis.readLong();
         int mapSize = dis.readInt();
         this.reply = new HashMap<>();
         for (int i = 0; i < mapSize; i++) {
@@ -100,6 +106,10 @@ public class MultiGetReply implements MsgInterfaces.ServToCliMsg {
 
     private void setInfo(String info) {
         this.info = info;
+    }
+
+    public long getArrivalTimestamp(){
+        return this.arrivalTimestamp;
     }
 
     @Override

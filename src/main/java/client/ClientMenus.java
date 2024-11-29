@@ -28,9 +28,9 @@ public class ClientMenus {
         System.out.println("\n");
         System.out.println("----------- COMANDOS GET -----------");
         System.out.println("\n");
-        System.out.println("1 - get");
-        System.out.println("2 - multiGet");
-        System.out.println("3 - getWhen");
+        System.out.println("1 - Get");
+        System.out.println("2 - MultiGet");
+        System.out.println("3 - GetWhen");
         System.out.println("4 - Voltar atrás");
         System.out.println("Seleccione a acção pretendida:");
     }
@@ -39,8 +39,8 @@ public class ClientMenus {
         System.out.println("\n");
         System.out.println("----------- COMANDOS PUT -----------");
         System.out.println("\n");
-        System.out.println("1 - put");
-        System.out.println("2 - multiPut");
+        System.out.println("1 - Put");
+        System.out.println("2 - MultiPut");
         System.out.println("3 - Voltar atrás");
         System.out.println("Seleccione a acção pretendida:");
     }

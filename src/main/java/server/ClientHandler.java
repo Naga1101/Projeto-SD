@@ -1,14 +1,18 @@
 package server;
 
-import messagesFormat.MsgInterfaces.CliToServMsg;
-import messagesFormat.*;
-import enums.Enums.*;
-import utils.BoundedBuffer;
-
+import enums.Enums.TaskPriority;
+import enums.Enums.autenticacao;
+import enums.Enums.commandType;
+import enums.Enums.getCommand;
+import enums.Enums.putCommand;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import messagesFormat.*;
+import messagesFormat.MsgInterfaces.CliToServMsg;
+import messagesFormat.MsgInterfaces.IMessage;
+import utils.BoundedBuffer;
 
 public class ClientHandler implements Runnable, AutoCloseable {
     private Socket clientSocket;
@@ -20,6 +24,7 @@ public class ClientHandler implements Runnable, AutoCloseable {
     private String user = "";
     private final int BufferSize = 15;
     private BoundedBuffer<EncapsulatedMsg> inputBuffer;
+    private BoundedBuffer<IMessage> outputBuffer;
 
     public ClientHandler(Socket socket, UsersAuthenticator usersAuthenticator) {
         this.clientSocket = socket;
@@ -87,6 +92,9 @@ public class ClientHandler implements Runnable, AutoCloseable {
                             user = name;
                             activeTimer.assignUsernameToTimer(name);
                             inputBuffer = new BoundedBuffer<>(BufferSize);
+                            outputBuffer = new BoundedBuffer<>(BufferSize);
+
+                            Server.addUserOutputBuffer(name, outputBuffer);
                         }
 
 						break;
@@ -234,15 +242,12 @@ public class ClientHandler implements Runnable, AutoCloseable {
         }
     }
 
-    // TODO falta fazer o reply to client
     private void replyToClient() {
         try {
             while (true) {
-                // Send response to the client
-                String response = "Server reply at " + System.currentTimeMillis() + "\n" + usersAuthenticator.toString();
-                out.writeUTF(response);
+                IMessage reply = outputBuffer.pop();
+                reply.serialize(out);
                 out.flush();
-                Thread.sleep(5000); // Delay for demonstration
             }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
@@ -277,6 +282,7 @@ public class ClientHandler implements Runnable, AutoCloseable {
             if (activeTimer != null) activeTimer.stopCountdown();
             if (in != null) in.close();
             if (out != null) out.close();
+            if(outputBuffer != null) Server.removeUserOutputBuffer(user);
             if (clientSocket != null && !clientSocket.isClosed()) clientSocket.close();
             System.out.println("Recursos de ClientHandler fechados corretamente.");
         } catch (IOException e) {

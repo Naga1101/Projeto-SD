@@ -1,14 +1,14 @@
 package server;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class DataBaseWithBatch {
     Logs sessionFile;
@@ -41,7 +41,14 @@ public class DataBaseWithBatch {
         lockBatch.lock();
         try {
             timestamp = getCurrentTimestamp();
-            String dataS = new String(data, StandardCharsets.UTF_8);
+            String dataS;
+            if (data != null) {
+                dataS = new String(data, StandardCharsets.UTF_8);
+            } else {
+                dataS = null;
+                System.err.println("Warning: Attempted to create a String from a null byte array.");
+            }
+            
             String message = timestamp + " | Put " + " | ID: " + key + " | value: " + dataS;
             sessionFile.log(message);
             message = timestamp + " | Data during Put";
@@ -165,7 +172,13 @@ public class DataBaseWithBatch {
             lockBatch.unlock();
         }
 
-        String dataS = new String(data, StandardCharsets.UTF_8);
+        String dataS;
+        if (data != null) {
+            dataS = new String(data, StandardCharsets.UTF_8);
+        } else {
+            dataS = null;
+            System.err.println("Warning: Attempted to create a String from a null byte array.");
+        }
         String message = timestamp + " | Get result from main " + " | ID: " + key + " | value: " + dataS;
         sessionFile.log(message);
 
@@ -206,7 +219,13 @@ public class DataBaseWithBatch {
             byte[] data = batchCopy.get(key);
             data = data != null ? data : dataBaseCopy.get(key);
             resultMap.put(key, data);
-            String dataS = new String(data, StandardCharsets.UTF_8);
+            String dataS;
+            if (data != null) {
+                dataS = new String(data, StandardCharsets.UTF_8);
+            } else {
+                dataS = null;
+                System.err.println("Warning: Attempted to create a String from a null byte array.");
+            }
             message = timestamp + " | MultiGet result: " + " | ID: " + key + " - data: " + dataS;
             sessionFile.log(message);
         }        
@@ -333,8 +352,14 @@ public class DataBaseWithBatch {
             String timestamp = getCurrentTimestamp();
             if(!dataBase.isEmpty()) {
                 dataBase.forEach((key, value) -> {
-                    String data = new String(value, StandardCharsets.UTF_8);
-                    String message = timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | ID: " + key + " - data: " + data;
+                    String dataS;
+                    if (value != null) {
+                        dataS = new String(value, StandardCharsets.UTF_8);
+                    } else {
+                        dataS = null;
+                        System.err.println("Warning: Attempted to create a String from a null byte array.");
+                    }
+                    String message = timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | ID: " + key + " - data: " + dataS;
                     System.out.println(message);
                     sessionFile.log(message);
                 });
@@ -359,8 +384,14 @@ public class DataBaseWithBatch {
             String timestamp = getCurrentTimestamp();
             if(!batch.isEmpty()) {
                 batch.forEach((key, value) -> {
-                    String data = new String(value, StandardCharsets.UTF_8);
-                    String message = timestamp + " | Batch Content: " + " | Size of batch: " + batch.size() + " | ID: " + key + " - data: " + data;
+                    String dataS;
+                    if (value != null) {
+                        dataS = new String(value, StandardCharsets.UTF_8);
+                    } else {
+                        dataS = null;
+                        System.err.println("Warning: Attempted to create a String from a null byte array.");
+                    }
+                    String message = timestamp + " | Batch Content: " + " | Size of batch: " + batch.size() + " | ID: " + key + " - data: " + dataS;
                     System.out.println(message);
                     sessionFile.log(message);
                 });

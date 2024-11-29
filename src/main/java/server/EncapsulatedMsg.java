@@ -1,11 +1,10 @@
 package server;
 
 import enums.Enums.TaskPriority;
-import messagesFormat.MsgInterfaces.IMessage;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import messagesFormat.MsgInterfaces.IMessage;
 
 public class EncapsulatedMsg<T extends IMessage>{
     private String user;
@@ -44,6 +43,7 @@ public class EncapsulatedMsg<T extends IMessage>{
     public TaskPriority getPriority() {
         return this.priority;
     }
+    
     public void setMessage(T msg) {
         this.message = msg;
     }

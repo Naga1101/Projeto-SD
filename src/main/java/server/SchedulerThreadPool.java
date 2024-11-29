@@ -1,11 +1,9 @@
 package server;
 
+import enums.Enums.WorkerStatus;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-
-import enums.Enums.WorkerStatus;
-
 import static server.Server.unscheduledTaks;
 
 public class SchedulerThreadPool {
@@ -18,7 +16,7 @@ public class SchedulerThreadPool {
     private int activeTaskCount = 0;
     private int taskCount = 0;
 
-    public SchedulerThreadPool(int numberOfThreads, int bufferSize, List<Worker> workers) {
+    public SchedulerThreadPool(int numberOfThreads, List<Worker> workers) {
         this.workers = workers;
         schedulers = new Thread[numberOfThreads];
         for (int i = 0; i < numberOfThreads; i++) {

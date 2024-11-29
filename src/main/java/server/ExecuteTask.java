@@ -1,29 +1,30 @@
 package server;
 
-import enums.Enums;
-import messagesFormat.*;
-import messagesFormat.MsgInterfaces.IMessage;
-
+import enums.Enums.commandType;
+import enums.Enums.getCommand;
+import enums.Enums.putCommand;
 import java.util.Map;
 import java.util.Set;
-
-import static enums.Enums.getCommand;
-import static enums.Enums.commandType;
-import static enums.Enums.putCommand;
+import messagesFormat.*;
+import messagesFormat.MsgInterfaces.IMessage;
 
 
 public class ExecuteTask {
     public void executeTask(ScheduledTask<EncapsulatedMsg<? extends IMessage>> task) throws InterruptedException {
+        long arrivalTimestamp = task.getScheduledTimestamp(); 
         EncapsulatedMsg<? extends IMessage> encapsulatedMsg = task.getMessage();
 
+        String user = encapsulatedMsg.getUser();
         IMessage command = encapsulatedMsg.getMessage();
 
-        System.out.println("Executing command for user: " + encapsulatedMsg.getUser());
-        System.out.println("Command: " + command.toString());
+        IMessage reply = null;
+        EncapsulatedMsg<IMessage> replyEnc = new EncapsulatedMsg<>(user, reply);
+
+        //System.out.println("Executing command for user: " + encapsulatedMsg.getUser());
+        //System.out.println("Command: " + command.toString());
 
         commandType opcode = commandType.fromCode(command.getOpcode());
         byte subcode = command.getSubcode();
-
         switch(opcode){
             case GET:
                 getCommand subcodeGet = getCommand.fromCode(subcode);
@@ -36,7 +37,7 @@ public class ExecuteTask {
 
                             byte[] data = Server.db.get(key);
 
-                            GetReply reply = new GetReply(data);
+                            reply = new GetReply(key, arrivalTimestamp, data);
 
                             System.out.println(reply);
                         } else {
@@ -51,7 +52,7 @@ public class ExecuteTask {
 
                             Map<String, byte[]> dataReply = Server.db.multiGetLockToCopy(keySet);
 
-                            MultiGetReply reply = new MultiGetReply(dataReply);
+                            reply = new MultiGetReply(arrivalTimestamp, dataReply);
 
                             System.out.println(reply);
                         } else {
@@ -68,8 +69,10 @@ public class ExecuteTask {
 
                             byte[] data = Server.db.getWhen(key, keyCond, valueCond);
 
-                            GetWhenReply reply = new GetWhenReply(data);
+                            reply = new GetWhenReply(arrivalTimestamp, key, data);
+                            
 
+                            System.out.println("Getwhen successfully");
                             System.out.println(reply);
                         } else {
                             throw new IllegalStateException("Invalid message type for GET operation");
@@ -89,7 +92,7 @@ public class ExecuteTask {
 
                             Server.db.put(key, data);
 
-                            PutReply reply = new PutReply();
+                            reply = new PutReply(arrivalTimestamp);
 
                             System.out.println(reply);
                         } else {
@@ -104,7 +107,7 @@ public class ExecuteTask {
 
                             Server.db.multiPut(pairs);
 
-                            MultiPutReply reply = new MultiPutReply();
+                            reply = new MultiPutReply(arrivalTimestamp);
 
                             System.out.println(reply);
                         } else {
@@ -114,5 +117,8 @@ public class ExecuteTask {
                 }
                 break;
         }
+
+        replyEnc.setMessage(reply);
+        Server.finishedTasks.push(replyEnc);
     }
 }

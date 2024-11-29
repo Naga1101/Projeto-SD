@@ -1,9 +1,6 @@
 package server;
 
-import utils.BoundedBuffer;
-
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -15,13 +12,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import utils.BoundedBuffer;
 
 public class Server {
     private static final int PORT = 12345;
 
     // Variaveis relativas a autenticação de users
 
-    private static int maxConcurrentUsers;
     private static int currentOnlineUsers = 0;
     private static AtomicInteger userIdCounter = new AtomicInteger(1);
     private static UsersAuthenticator usersAuthenticator;
@@ -29,13 +26,20 @@ public class Server {
     private static final List<Integer> arrivalOrder = new LinkedList<>();
     private static final Lock waitingUsersLock = new ReentrantLock();
     private static Condition waitingQueueCondition = waitingUsersLock.newCondition();
+    private static Lock usersBufferMapLock = new ReentrantLock(); 
+    private static HashMap<String, BoundedBufferWithLock> usersOutputBuffer = new HashMap<>();
 
     // variaveis relativas à gestão de dados
     public static DataBaseWithBatch db;
-    private static int numWorkers;
-    private static int numSchedulers;
     private static final int BUFFERSIZE = 25;
     public static SortedBoundedBuffer<ScheduledTask> unscheduledTaks = new SortedBoundedBuffer<>(BUFFERSIZE);
+    public static BoundedBuffer<EncapsulatedMsg> finishedTasks = new BoundedBuffer<>(BUFFERSIZE);
+
+    // Variaveis que são definidas ao ligar o server
+    private static int numWorkers;
+    private static int numSchedulers;
+    private static int numDispatchers;
+    private static int maxConcurrentUsers;
 
 
     public static void main(String[] args) {
@@ -55,10 +59,13 @@ public class Server {
         numWorkers = scanner.nextInt();
         System.out.println("Insira o número de schedulers que pretende: ");
         numSchedulers = scanner.nextInt();
+        System.out.println("Insira o número de dispatchers que pretende: ");
+        numDispatchers = scanner.nextInt();
         scanner.close();
 
         System.out.println("O server vai ter um total de " + numWorkers + " workers, "
-         + numSchedulers + " schedulers e podem existir no máximo " + maxConcurrentUsers + " clientes em simutâneo!");
+         + numSchedulers + " schedulers, um total de " + numDispatchers + " dispatchers e podem existir no máximo "
+         + maxConcurrentUsers + " clientes em simutâneo!");
 
         backgroundLoop();
 
@@ -167,11 +174,42 @@ public class Server {
             thread.start();
         }
 
-        SchedulerThreadPool schedulerPool = new SchedulerThreadPool(numSchedulers, 30, workers);
+        SchedulerThreadPool schedulerPool = new SchedulerThreadPool(numSchedulers, workers);
         try {
             schedulerPool.awaitTaskPool();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        }
+
+        DispatcherThreadPool dispatcherPool = new DispatcherThreadPool(numDispatchers);
+    }
+
+    // Para todas as threads terem acesso aos outputbuffers dos users
+
+    public static void addUserOutputBuffer(String name, BoundedBuffer outputBuffer){
+        usersBufferMapLock.lock();
+        try{
+            usersOutputBuffer.put(name, new BoundedBufferWithLock(outputBuffer));
+        } finally {
+            usersBufferMapLock.unlock();
+        }
+    }
+
+    public static void removeUserOutputBuffer(String name){
+        usersBufferMapLock.lock();
+        try{
+            usersOutputBuffer.remove(name);
+        } finally {
+            usersBufferMapLock.unlock();
+        }
+    }
+
+    public static BoundedBufferWithLock getUserOutputBuffer(String name){
+        usersBufferMapLock.lock();
+        try{
+            return usersOutputBuffer.get(name);
+        } finally {
+            usersBufferMapLock.unlock();
         }
     }
 }

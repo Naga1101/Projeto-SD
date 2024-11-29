@@ -2,7 +2,6 @@ package messagesFormat;
 
 import enums.Enums.commandType;
 import enums.Enums.getCommand;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -11,22 +10,30 @@ import java.util.Arrays;
 public class GetReply implements MsgInterfaces.ServToCliMsg {
     private static final byte OPCODE = (byte) commandType.GET.ordinal();
     private static final byte SUBCODE = (byte) getCommand.GET.ordinal();
+    private long arrivalTimestamp;
+    private String key; 
     private byte[] reply;
     private String info; // error info?
 
     public GetReply() {}
 
-    public GetReply(byte[] reply) {
+    public GetReply(String key, long arrivalTimestamp, byte[] reply) {
+        this.arrivalTimestamp = arrivalTimestamp;
+        this.key = key;
         this.reply = reply;
         this.info = "";
     }
 
-    public GetReply(byte[] reply, String info) {
+    public GetReply(String key, long arrivalTimestamp, byte[] reply, String info) {
+        this.arrivalTimestamp = arrivalTimestamp;
+        this.key = key;
         this.reply = reply;
         this.info = info;
     }
 
     public GetReply(GetReply msg) {
+        this.arrivalTimestamp = msg.arrivalTimestamp;
+        this.key = msg.key;
         this.reply = msg.reply;
         this.info = msg.info;
     }
@@ -45,6 +52,8 @@ public class GetReply implements MsgInterfaces.ServToCliMsg {
     public void serialize(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
         dos.writeByte(SUBCODE);
+        dos.writeLong(arrivalTimestamp);
+        dos.writeUTF(key);
 
         if (reply != null) {
             dos.writeInt(reply.length);  // Write the length of reply
@@ -60,6 +69,8 @@ public class GetReply implements MsgInterfaces.ServToCliMsg {
     public void serializeWithoutFlush(DataOutputStream dos) throws IOException {
         dos.writeByte(OPCODE);
         dos.writeByte(SUBCODE);
+        dos.writeLong(arrivalTimestamp);
+        dos.writeUTF(key);
 
         if (reply != null) {
             dos.writeInt(reply.length);
@@ -73,6 +84,8 @@ public class GetReply implements MsgInterfaces.ServToCliMsg {
 
     @Override
     public void deserialize(DataInputStream dis) throws IOException {
+        this.arrivalTimestamp = dis.readLong();
+        this.key = dis.readUTF();
         int length = dis.readInt();
         if (length >= 0) {
             reply = new byte[length];
@@ -92,6 +105,10 @@ public class GetReply implements MsgInterfaces.ServToCliMsg {
         return this.info;
     }
 
+    public long getArrivalTimestamp(){
+        return this.arrivalTimestamp;
+    }
+
     private void setReply(byte[] reply) {
         this.reply = reply != null ? Arrays.copyOf(reply, reply.length) : null;
     }
@@ -107,8 +124,11 @@ public class GetReply implements MsgInterfaces.ServToCliMsg {
 
     @Override
     public String toString() {
-        return "GetReply{reply=" + Arrays.toString(reply) + ", info='" + info + "'}";
-    }
+        return "GetReply{timestamp=" + arrivalTimestamp 
+            + ", key=" + key 
+            + ", reply=" + (reply != null ? Arrays.toString(reply) : "null") 
+            + ", info='" + info + "'}";
+    }    
 
     @Override
     public GetReply clone() {

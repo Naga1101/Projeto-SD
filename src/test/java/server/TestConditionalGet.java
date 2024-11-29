@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets;
 public class TestConditionalGet {
     public static void main(String[] args) throws InterruptedException {
         Logs log = new Logs();
-        DataBase db = new DataBase(log);
+        DataBaseWithBatch db = new DataBaseWithBatch(log, 50);
 
         db.put("key1", "Dados chave 1".getBytes(StandardCharsets.UTF_8));
         db.put("keyCond", "Valor Inicial".getBytes(StandardCharsets.UTF_8));
@@ -51,7 +51,7 @@ public class TestConditionalGet {
             e.printStackTrace();
         }
 
-        db.printAllData();
+        //db.printAllData();
     }
 }
 

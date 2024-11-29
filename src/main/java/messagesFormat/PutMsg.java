@@ -2,7 +2,6 @@ package messagesFormat;
 
 import enums.Enums.commandType;
 import enums.Enums.putCommand;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -55,6 +54,9 @@ public class PutMsg implements MsgInterfaces.CliToServMsg {
     @Override
     public void deserialize(DataInputStream dis) throws IOException {
         this.key = dis.readUTF();
+        int dataLength = dis.readInt();
+        this.data = new byte[dataLength];
+        dis.readFully(this.data);
     }
 
     public String getKey() {

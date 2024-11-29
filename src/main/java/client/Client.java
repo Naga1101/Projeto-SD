@@ -4,17 +4,18 @@ import enums.Enums.autenticacao;
 import enums.Enums.getCommand;
 import enums.Enums.optionCommand;
 import enums.Enums.putCommand;
-import messagesFormat.*;
-import messagesFormat.MsgInterfaces.CliToServMsg;
-import utils.BoundedBuffer;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import messagesFormat.*;
+import messagesFormat.MsgInterfaces.CliToServMsg;
+import utils.BoundedBuffer;
 
 public class Client implements AutoCloseable {
     private static final String SERVER_ADDRESS = "localhost";
@@ -28,7 +29,7 @@ public class Client implements AutoCloseable {
 
     private final int BufferSize = 15;
     private BoundedBuffer<CliToServMsg> sendBuffer = new BoundedBuffer<>(BufferSize);
-    // BoundedBuffer<ServToCliMsg> recieveBuffer;
+    private List<SavedResponse> arrivedReplys = new LinkedList<>();
 
     public static void main(String[] args) {
         Client client = new Client();
@@ -46,17 +47,17 @@ public class Client implements AutoCloseable {
             
                 if(loggedIn){
                     Thread sendThread = new Thread(() -> sendMessage(out));
-                    //Thread receiveThread = new Thread(() -> receiveMessage(in));
+                    Thread receiveThread = new Thread(() -> receiveMessage(in));
 
                     sendThread.start();
-                    //receiveThread.start();
+                    receiveThread.start();
                     
                     authenticatedClient();
 
                     turnOff = true;
 
                     sendThread.join();
-                    //receiveThread.join();
+                    receiveThread.join();
                 }
             }
 
@@ -294,13 +295,8 @@ public class Client implements AutoCloseable {
     }
 
     private void receiveMessage(DataInputStream in) {
-        try {
-            while (!turnOff) {
-                String response = in.readUTF();
-                System.out.println("Server response: " + response);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        while (!turnOff) {
+            int i = 0;
         }
     }
 
