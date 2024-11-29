@@ -246,6 +246,8 @@ public class Client implements AutoCloseable {
                             String value = scanner.nextLine();
                             CliToServMsg putMsg = new PutMsg(key, value);
 
+                            System.out.println(putMsg);
+
                             sendBuffer.push(putMsg);
                             break;
                         case MULTIPUT:

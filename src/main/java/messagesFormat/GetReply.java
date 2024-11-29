@@ -16,6 +16,11 @@ public class GetReply implements MsgInterfaces.ServToCliMsg {
 
     public GetReply() {}
 
+    public GetReply(byte[] reply) {
+        this.reply = reply;
+        this.info = "";
+    }
+
     public GetReply(byte[] reply, String info) {
         this.reply = reply;
         this.info = info;

@@ -31,7 +31,7 @@ public class Server {
     private static Condition waitingQueueCondition = waitingUsersLock.newCondition();
 
     // variaveis relativas à gestão de dados
-    private static DataBaseWithBatch db;
+    public static DataBaseWithBatch db;
     private static int numWorkers;
     private static int numSchedulers;
     private static final int BUFFERSIZE = 25;

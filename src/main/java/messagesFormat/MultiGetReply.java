@@ -17,6 +17,11 @@ public class MultiGetReply implements MsgInterfaces.ServToCliMsg {
 
     public MultiGetReply() {}
 
+    public MultiGetReply(Map<String, byte[]> reply) {
+        this.reply = reply;
+        this.info = "";
+    }
+
     public MultiGetReply(Map<String, byte[]> reply, String info) {
         this.reply = reply;
         this.info = info;

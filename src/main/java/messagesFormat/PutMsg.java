@@ -65,6 +65,14 @@ public class PutMsg implements MsgInterfaces.CliToServMsg {
         this.key = key;
     }
 
+    public byte[] getData() {
+        return data;
+    }
+
+    private void setData(byte[] data) {
+        this.data = data;
+    }
+
     @Override
     public int getRequestN() {
         return -1;
@@ -72,7 +80,7 @@ public class PutMsg implements MsgInterfaces.CliToServMsg {
 
     @Override
     public String toString() {
-        return "PutMsg{key='" + key + "'}";
+        return "PutMsg{key='" + key + "' | data='" + new String(data) + "'}";
     }
 
     @Override

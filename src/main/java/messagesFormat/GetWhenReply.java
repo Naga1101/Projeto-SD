@@ -16,6 +16,11 @@ public class GetWhenReply implements MsgInterfaces.ServToCliMsg {
 
     public GetWhenReply() {}
 
+    public GetWhenReply(byte[] reply) {
+        this.reply = reply != null ? Arrays.copyOf(reply, reply.length) : null;
+        this.info = "";
+    }
+
     public GetWhenReply(byte[] reply, String info) {
         this.reply = reply != null ? Arrays.copyOf(reply, reply.length) : null;
         this.info = info;

@@ -13,7 +13,10 @@ public class PutReply implements MsgInterfaces.ServToCliMsg {
     private String info;
 
 
-    public PutReply() {}
+    public PutReply() {
+        this.reply = 0;
+        this.info = "success";
+    }
 
     public PutReply(int reply, String info) {
         this.reply = reply;

@@ -13,7 +13,10 @@ public class MultiPutReply implements MsgInterfaces.ServToCliMsg {
     private String info;
 
 
-    public MultiPutReply() {}
+    public MultiPutReply() {
+        this.reply = 0;
+        this.info = "succes";
+    }
 
     public MultiPutReply(int reply, String info) {
         this.reply = reply;
