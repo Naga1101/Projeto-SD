@@ -1,18 +1,15 @@
 package server;
 
+import utils.BoundedBuffer;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import utils.BoundedBuffer;
 
 public class Server {
     private static final int PORT = 12345;
@@ -43,7 +40,41 @@ public class Server {
 
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+        if (args.length == 0) {  // introduzir manualmente os argumentos
+            Scanner scanner = new Scanner(System.in);
+
+            System.out.println("Insira o número de clientes que podem estar conectados em simultâneo: ");
+            maxConcurrentUsers = scanner.nextInt();
+            System.out.println("Insira o número de workers que pretende: ");
+            numWorkers = scanner.nextInt();
+            System.out.println("Insira o número de schedulers que pretende: ");
+            numSchedulers = scanner.nextInt();
+            System.out.println("Insira o número de dispatchers que pretende: ");
+            numDispatchers = scanner.nextInt();
+            scanner.close();
+
+            System.out.println("O server vai ter um total de " + numWorkers + " workers, "
+                    + numSchedulers + " schedulers, um total de " + numDispatchers + " dispatchers e podem existir no máximo "
+                    + maxConcurrentUsers + " clientes em simutâneo!");
+        } else if (args.length == 4) {  // os argumentos já vêm ao criar o server
+            try {
+                maxConcurrentUsers = Integer.parseInt(args[0]);
+                numWorkers = Integer.parseInt(args[1]);
+                numSchedulers = Integer.parseInt(args[2]);
+                numDispatchers = Integer.parseInt(args[3]);
+
+                System.out.println("O server vai ter um total de " + numWorkers + " workers, "
+                        + numSchedulers + " schedulers, um total de " + numDispatchers + " dispatchers e podem existir no máximo "
+                        + maxConcurrentUsers + " clientes em simutâneo!");
+            } catch (NumberFormatException e) {
+                System.err.println("Erro: Todos os argumentos devem ser números inteiros.");
+                System.out.println("Uso correto: java Server maxXClients numWorkers numSchedulers numDispatchers");
+            }
+        } else {
+            System.err.println("Erro: Número incorreto de argumentos fornecido.");
+            System.out.println("Uso correto: java Server maxXClients numWorkers numSchedulers numDispatchers");
+        }
+
         usersAuthenticator = new UsersAuthenticator();
         int reply;
 
@@ -52,20 +83,6 @@ public class Server {
         reply = usersAuthenticator.registerUser("admin3", "123");
 
         System.out.println(usersAuthenticator);
-
-        System.out.println("Insira o número de clientes que podem estar conectados em simultâneo: ");
-        maxConcurrentUsers = scanner.nextInt();
-        System.out.println("Insira o número de workers que pretende: ");
-        numWorkers = scanner.nextInt();
-        System.out.println("Insira o número de schedulers que pretende: ");
-        numSchedulers = scanner.nextInt();
-        System.out.println("Insira o número de dispatchers que pretende: ");
-        numDispatchers = scanner.nextInt();
-        scanner.close();
-
-        System.out.println("O server vai ter um total de " + numWorkers + " workers, "
-         + numSchedulers + " schedulers, um total de " + numDispatchers + " dispatchers e podem existir no máximo "
-         + maxConcurrentUsers + " clientes em simutâneo!");
 
         backgroundLoop();
 
