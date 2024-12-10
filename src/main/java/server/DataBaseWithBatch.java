@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DataBaseWithBatch {
+public class DataBaseWithBatch implements DBInterface.DB {
     Logs sessionFile;
     // Main data
     private static HashMap<String, byte[]> dataBase;
@@ -35,7 +35,7 @@ public class DataBaseWithBatch {
     }
 
     // puts na batch e caso necessário chamam o flush
-
+    @Override
     public void put(String key, byte[] data){
         String timestamp;
         lockBatch.lock();
@@ -84,6 +84,7 @@ public class DataBaseWithBatch {
         }
     }
 
+    @Override
     public void multiPut(Map<String, byte[]> pairs){
         String timestamp;
         lockBatch.lock();
@@ -145,6 +146,7 @@ public class DataBaseWithBatch {
         return data;
     }
 
+    @Override
     public byte[] get(String key){
         String timestamp;
         byte[] data = null;
@@ -185,7 +187,9 @@ public class DataBaseWithBatch {
         return data;
     }
 
-    public Map<String, byte[]>  multiGetLockToCopy(Set<String> keys){
+    @Override
+    //public Map<String, byte[]>  multiGetLockToCopy(Set<String> keys){
+    public Map<String, byte[]>  multiGet(Set<String> keys){
         String timestamp;
         HashMap<String, byte[]> batchCopy;
         HashMap<String, byte[]> dataBaseCopy;
@@ -233,6 +237,7 @@ public class DataBaseWithBatch {
         return resultMap;
     }
 
+    @Override
     public byte[] getWhen(String key, String keyCond, byte[] valueCond) throws InterruptedException {
         byte[] wantedData = verifyIfCondAlreadyMet(key, keyCond, valueCond);
         if(wantedData != null) return wantedData;

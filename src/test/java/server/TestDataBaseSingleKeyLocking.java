@@ -91,7 +91,7 @@ public class TestDataBaseSingleKeyLocking {
             String timestamp = db.getCurrentTimestamp();
             Set<String> randomKeys = getRandomKeys(5,20);
             System.out.println(timestamp + " | Thread " + Thread.currentThread().getId() + " | - Executing multiGet for keys: " + randomKeys);
-            Map<String, byte[]> reply = db.multiGetLockToCopy(randomKeys);
+            Map<String, byte[]> reply = db.multiGet(randomKeys);
             if (reply != null) {
                 reply.forEach((key, value) -> {
                     String data = value != null ? new String(value, StandardCharsets.UTF_8) : "null";

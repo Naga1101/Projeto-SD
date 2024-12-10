@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DataBaseSingleKeyLocking {
+public class DataBaseSingleKeyLocking implements DBInterface.DB {
     private Logs sessionFile;
 
     private static HashMap<String, byte[]> dataBase;
@@ -37,6 +37,7 @@ public class DataBaseSingleKeyLocking {
         }
     }
 
+    @Override
     public void put(String key, byte[] data) {
         ReentrantLock keyLock = getKeyLock(key);
         keyLock.lock();
@@ -67,6 +68,7 @@ public class DataBaseSingleKeyLocking {
         }
     }
 
+    @Override
     public void multiPut(Map<String, byte[]> pairs) {
         String timestamp = getCurrentTimestamp();
         pairs.forEach((key, value) -> {
@@ -99,6 +101,7 @@ public class DataBaseSingleKeyLocking {
         });
     }
 
+    @Override
     public byte[] get(String key) {
         ReentrantLock keyLock = getKeyLock(key);
         keyLock.lock();
@@ -153,7 +156,9 @@ public class DataBaseSingleKeyLocking {
         return resultMap;
     }
 
-    public Map<String, byte[]> multiGetLockToCopy(Set<String> keys) {
+    @Override
+    //public Map<String, byte[]> multiGetLockToCopy(Set<String> keys) {
+    public Map<String, byte[]> multiGet(Set<String> keys) {
         String timestamp;
         HashMap<String, byte[]> dataBaseCopy;
         Map<String, byte[]> resultMap = new HashMap<>();
@@ -182,6 +187,7 @@ public class DataBaseSingleKeyLocking {
         return resultMap;
     }
 
+    @Override
     public byte[] getWhen(String key, String keyCond, byte[] valueCond) throws InterruptedException {
         byte[] wantedData = verifyIfCondAlreadyMet(key, keyCond, valueCond);
         if (wantedData != null) return wantedData;

@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DataBase {
+public class DataBase implements DBInterface.DB {
     private Logs sessionFile;
 
     /* ConcurrentHashMap > performance do que HashTable
@@ -33,6 +33,7 @@ public class DataBase {
         this.sessionFile = sessionFile;
     }
 
+    @Override
     public void put(String key, byte[] data) {
         String timestamp;
         lockDataBase.lock();
@@ -69,6 +70,7 @@ public class DataBase {
         }
     }
 
+    @Override
     public void multiPut(Map<String, byte[]> pairs) {
         String timestamp;
         lockDataBase.lock();
@@ -82,7 +84,7 @@ public class DataBase {
 
             pairs.forEach((key, value) -> {
                 dataBase.put(key, value);
-    
+
                 if (!waitingCond.isEmpty()) {
                     lockWaitingCond.lock();
                     try {
@@ -100,16 +102,17 @@ public class DataBase {
         } finally {
             lockDataBase.unlock();
         }
-    
+
     }
 
+    @Override
     public byte[] get(String key) {
         if (dataBase == null) {
             throw new IllegalStateException("Database not initialized");
         }
 
         String timestamp;
-        
+
         lockDataBase.lock();
         byte[] data = null;
         try{
@@ -137,7 +140,7 @@ public class DataBase {
 
     public Map<String, byte[]>  multiGetLockAll(Set<String> keys){
         Map<String, byte[]>  resultMap = new HashMap<>();
-        
+
         lockDataBase.lock();
         try{
             for (String key : keys) {
@@ -150,11 +153,13 @@ public class DataBase {
         return resultMap;
     }
 
-    public Map<String, byte[]>  multiGetLockToCopy(Set<String> keys){
+    @Override
+    //public Map<String, byte[]>  multiGetLockToCopy(Set<String> keys){
+    public Map<String, byte[]>  multiGet(Set<String> keys){
         String timestamp;
         HashMap<String, byte[]> dataBaseCopy;
         Map<String, byte[]>  resultMap = new HashMap<>();
-        
+
         lockDataBase.lock();
         try{
             timestamp = getCurrentTimestamp();
@@ -173,20 +178,21 @@ public class DataBase {
             sessionFile.log(message);
             resultMap.put(key, dataBaseCopy.get(key));
         }
-        
+
         return resultMap;
     }
 
+    @Override
     public byte[] getWhen(String key, String keyCond, byte[] valueCond) throws InterruptedException {
         byte[] wantedData = verifyIfCondAlreadyMet(key, keyCond, valueCond);
         if(wantedData != null) return wantedData;
-    
+
         CondKey newCond = new CondKey(valueCond);
-        waitingCond.put(keyCond, newCond);  
-    
+        waitingCond.put(keyCond, newCond);
+
         lockWaitingCond.lock();
         try {
-            while (!newCond.isMet()) {  
+            while (!newCond.isMet()) {
                 conditionMet.await();
             }
             return get(key);
@@ -215,7 +221,7 @@ public class DataBase {
         if (dataBase == null) {
             throw new IllegalStateException("Database not initialized");
         }
-        
+
         lockDataBase.lock();
         try {
             dataBase.forEach((key, value) -> {
@@ -235,7 +241,7 @@ public class DataBase {
         if (dataBase == null) {
             throw new IllegalStateException("Database not initialized");
         }
-        
+
         lockDataBase.lock();
         try {
             String timestamp = getCurrentTimestamp();
@@ -261,7 +267,7 @@ public class DataBase {
 /** getWhen se a variavel for volatil
 public byte[] getWhen(String key, String keyCond, byte[] valueCond) throws InterruptedException {
     byte[] currentCondValue = get(keyCond); // this uses the get function above
-    
+
     if (currentCondValue != null && Arrays.equals(currentCondValue, valueCond)) {
         return get(key);
     }

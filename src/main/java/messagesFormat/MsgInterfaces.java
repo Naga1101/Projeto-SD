@@ -12,8 +12,8 @@ public class MsgInterfaces {
         public void deserialize(DataInputStream dis) throws IOException;
         public int getRequestN();
         public IMessage clone();
-        byte getOpcode();
-        byte getSubcode();
+        public byte getOpcode();
+        public byte getSubcode();
     }
     
     public interface CliToServMsg extends IMessage {
