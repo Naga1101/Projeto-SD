@@ -195,6 +195,7 @@ public class DataBaseWithBatch implements DBInterface.DB {
         HashMap<String, byte[]> dataBaseCopy;
         Map<String, byte[]>  resultMap = new HashMap<>();
 
+        /**
         lockBatch.lock();
         try {
             timestamp = getCurrentTimestamp();
@@ -215,6 +216,30 @@ public class DataBaseWithBatch implements DBInterface.DB {
             }
         } finally {
             lockBatch.unlock();
+        }*/
+        lockBatch.lock();
+        try {
+            timestamp = getCurrentTimestamp();
+            String message = timestamp + " | MultiGet " + " | nº of keys: " + keys.size();
+            sessionFile.log(message);
+            message = timestamp + " | Data during MultiGet";
+            
+            batchCopy = new HashMap<>(batch);
+            
+            lockDataBase.lock();
+            try {
+                sessionFile.log(message);
+                logAllDataBatch();
+                lockBatch.unlock();
+                logAllDataMain();
+                
+                dataBaseCopy = new HashMap<>(dataBase);
+            } finally {
+                lockDataBase.unlock();
+            }
+        } catch (Exception e) {
+            lockBatch.unlock(); 
+            throw e;
         }
 
         for (String key : keys) {
