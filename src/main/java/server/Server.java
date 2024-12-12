@@ -1,7 +1,5 @@
 package server;
 
-import utils.BoundedBuffer;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -10,6 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import utils.BoundedBuffer;
 
 public class Server {
     private static final int PORT = 12345;
@@ -27,7 +26,7 @@ public class Server {
     private static HashMap<String, BoundedBufferWithLock> usersOutputBuffer = new HashMap<>();
 
     // variaveis relativas à gestão de dados
-    public static DataBaseWithBatch db;
+    public static DBInterface.DB db;
     private static final int BUFFERSIZE = 25;
     public static SortedBoundedBuffer<ScheduledTask> unscheduledTaks = new SortedBoundedBuffer<>(BUFFERSIZE);
     public static BoundedBuffer<EncapsulatedMsg> finishedTasks = new BoundedBuffer<>(BUFFERSIZE);
@@ -37,6 +36,7 @@ public class Server {
     private static int numSchedulers;
     private static int numDispatchers;
     private static int maxConcurrentUsers;
+    private static int typeDB;
 
 
     public static void main(String[] args) {
@@ -51,17 +51,20 @@ public class Server {
             numSchedulers = scanner.nextInt();
             System.out.println("Insira o número de dispatchers que pretende: ");
             numDispatchers = scanner.nextInt();
+            System.out.println("Insira o número do tipo de base de dados pretende utilizar(Single Lock - 0 | Lock per Key - 1 | DB com Batch - tamanho da batch): ");
+            typeDB = scanner.nextInt();
             scanner.close();
 
             System.out.println("O server vai ter um total de " + numWorkers + " workers, "
                     + numSchedulers + " schedulers, um total de " + numDispatchers + " dispatchers e podem existir no máximo "
                     + maxConcurrentUsers + " clientes em simutâneo!");
-        } else if (args.length == 4) {  // os argumentos já vêm ao criar o server
+        } else if (args.length == 5) {  // os argumentos já vêm ao criar o server
             try {
                 maxConcurrentUsers = Integer.parseInt(args[0]);
                 numWorkers = Integer.parseInt(args[1]);
                 numSchedulers = Integer.parseInt(args[2]);
                 numDispatchers = Integer.parseInt(args[3]);
+                typeDB = Integer.parseInt(args[4]);
 
                 System.out.println("O server vai ter um total de " + numWorkers + " workers, "
                         + numSchedulers + " schedulers, um total de " + numDispatchers + " dispatchers e podem existir no máximo "
@@ -177,7 +180,21 @@ public class Server {
 
     public static void backgroundLoop(){
         Logs databaseLogFile = new Logs();
-        db = new DataBaseWithBatch(databaseLogFile, 50);
+        
+        switch (typeDB) {
+            case 0:
+                db = new DataBase(databaseLogFile);
+                System.out.println("Escolheu a base de dados com apenas um lock global!");
+                break;
+            case 1:
+                db = new DataBaseSingleKeyLocking(databaseLogFile);
+                System.out.println("Escolheu a base de dados com um lock global e um lock por chave!");
+                break;
+            default:
+                db = new DataBaseWithBatch(databaseLogFile, typeDB);
+                System.out.println("Escolheu a base de dados com uma batch de tamanho " + typeDB + "!");
+                break;
+        }
 
         List<Worker> workers = new ArrayList<>(numWorkers); 
         List<Thread> workerThreads = new ArrayList<>(numWorkers);

@@ -16,7 +16,7 @@ public class TestDataBaseSingleKeyLocking {
 
         List<Map<String, byte[]>> testMaps = new ArrayList<>();
         for (int i = 1; i <= 15; i++) {
-            Path filePath = Paths.get("src","test", "files", "test_file" + i + ".txt");
+            Path filePath = Paths.get("test", "files", "MultiPutTestFiles", "test_file" + i + ".txt");
             if (Files.exists(filePath)) {
                 testMaps.add(parseFileToMap(filePath.toString()));
             } else {
@@ -156,6 +156,6 @@ public class TestDataBaseSingleKeyLocking {
  * Para compilar e correr estes testes é preciso utilizar estes comandos por ordem no terminal aberto na pasta src
  * javac -d out -sourcepath main/java main/java/server/*.java
  * javac -d out -sourcepath main/java main/java/client/*.java
- * javac -d out -cp out -sourcepath test/java test/java/server/TestDataBaseSemBatch.java
- * java -cp out server.TestDataBaseSemBatch
+ * javac -d out -cp out -sourcepath test/java test/java/server/TestDataBaseSingleKeyLocking.java
+ * java -cp out server.TestDataBaseSingleKeyLocking
  */

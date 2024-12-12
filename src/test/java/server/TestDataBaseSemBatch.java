@@ -16,7 +16,7 @@ public class TestDataBaseSemBatch {
 
         List<Map<String, byte[]>> testMaps = new ArrayList<>();
         for (int i = 1; i <= 15; i++) {
-            Path filePath = Paths.get("src","test", "files", "test_file" + i + ".txt");
+            Path filePath = Paths.get("test", "files", "MultiPutTestFiles", "test_file" + i + ".txt");
             if (Files.exists(filePath)) {
                 testMaps.add(parseFileToMap(filePath.toString()));
             } else {

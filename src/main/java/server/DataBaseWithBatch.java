@@ -20,23 +20,34 @@ public class DataBaseWithBatch implements DBInterface.DB {
     private static HashMap<String, byte[]> batch;
     // private final int batchSize = por descobrir;
     private int batchSize;
-    private final ReentrantLock lockBatch = new ReentrantLock();
+    final ReentrantLock lockBatch = new ReentrantLock();
 
     // Map of conditions waiting in getWhen
     private final Map<String, CondKey> waitingCond = new HashMap<>();
     private final ReentrantLock lockWaitingCond = new ReentrantLock();
     private final Condition conditionMet = lockWaitingCond.newCondition();
 
+    // Timer for batch
+    private BatchFlushTimer batchFlushTimer;
+    private Thread timerThread;
+
+
     public DataBaseWithBatch(Logs sessionFile, int batchSize) {
         this.sessionFile = sessionFile;
         this.batchSize = batchSize;
         dataBase = new HashMap<>();
         batch = new HashMap<>();
+
+        batchFlushTimer = new BatchFlushTimer(this, 45);
+        timerThread = new Thread(batchFlushTimer);
+        timerThread.start();
     }
 
     // puts na batch e caso necessário chamam o flush
     @Override
     public void put(String key, byte[] data){
+        batchFlushTimer.resetTimer();
+
         String timestamp;
         lockBatch.lock();
         try {
@@ -86,6 +97,8 @@ public class DataBaseWithBatch implements DBInterface.DB {
 
     @Override
     public void multiPut(Map<String, byte[]> pairs){
+        batchFlushTimer.resetTimer();
+
         String timestamp;
         lockBatch.lock();
         try{
@@ -169,11 +182,16 @@ public class DataBaseWithBatch implements DBInterface.DB {
                 return data;
             }
 
-            data = getMain(key);
+            lockDataBase.lock();
         } finally {
             lockBatch.unlock();
         }
-
+        
+        try {
+            data = getMain(key);
+        } finally {
+            lockDataBase.unlock();
+        }
         String dataS;
         if (data != null) {
             dataS = new String(data, StandardCharsets.UTF_8);
@@ -347,7 +365,7 @@ public class DataBaseWithBatch implements DBInterface.DB {
     }
 
     public void flushBiggerBatch(Map<String, byte[]> pairs){
-        System.out.println("Flushing batch");
+        System.out.println("Flushing bigger batch");
         lockDataBase.lock();
         try{
             String timestamp = getCurrentTimestamp();
@@ -368,9 +386,49 @@ public class DataBaseWithBatch implements DBInterface.DB {
         }
     }
 
+    public void forceFlushBatch(){
+        System.out.println("Flushing batch by force");
+        lockBatch.lock();
+        try {
+            String timestamp = getCurrentTimestamp();
+            String message = timestamp + " | Normal Flush ";
+            sessionFile.log(message);
+            message = timestamp + " | Data before flush";
+            sessionFile.log(message);
+            logAllDataBatch();
+            logAllDataMain();
+
+            lockDataBase.lock();
+            try{
+                dataBase.putAll(batch);
+                batch.clear();
+            } finally {
+                lockDataBase.unlock();
+            }
+
+            message = timestamp + " | Data after flush";
+            sessionFile.log(message);
+            logAllDataBatch();
+            logAllDataMain();
+        } finally {
+            lockBatch.unlock();
+        }
+    }
 
 
-    // prints 
+    // get batch para o timer
+
+    public HashMap<String, byte[]> getBatch() {
+        lockBatch.lock();  
+        try {
+            return batch;  
+        } finally {
+            lockBatch.unlock(); 
+        }
+    }    
+
+
+    // prints | logs
 
     public void logAllDataMain() {
         if (dataBase == null) {

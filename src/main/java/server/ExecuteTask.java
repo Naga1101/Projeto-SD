@@ -50,7 +50,7 @@ public class ExecuteTask {
 
                             Set<String> keySet = multiGetMsg.getKeySet();
 
-                            Map<String, byte[]> dataReply = Server.db.multiGetLockToCopy(keySet);
+                            Map<String, byte[]> dataReply = Server.db.multiGet(keySet);
 
                             reply = new MultiGetReply(arrivalTimestamp, dataReply);
 

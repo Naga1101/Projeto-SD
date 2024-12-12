@@ -1,5 +1,6 @@
 package server;
 
+import enums.Enums.TaskPriority;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.locks.Condition;
@@ -76,11 +77,36 @@ public class SortedBoundedBuffer<T extends ScheduledTask> {
             }
 
             list.sort(Comparator.comparing(T::getRealPriority).reversed());
+
+            checkThreshold();
         } finally {
             lock.unlock();
         }
     }
 
-    //TODO: fazer aqui uma verificação se já chegou ao limite da prioridade
-    // se sim ou passam para a frente do buffer ou adiciono a uma lista de prioridades
+    private void checkThreshold() {
+        Map<TaskPriority, Integer> thresholds = Map.of(
+            TaskPriority.HIGH, 120, // 10*12
+            TaskPriority.MEDIUM, 84,  // 6*14
+            TaskPriority.LOW, 36  // 2 * 18
+        );
+
+        List<T> exceededThreshold = new ArrayList<>();
+        List<T> normalTasks = new ArrayList<>();
+
+        for (T task : list) {
+            int taskThreshold = thresholds.get(task.getBasePriority());
+            if (task.getRealPriority() > taskThreshold) {
+                exceededThreshold.addLast(task);
+            } else {
+                normalTasks.addLast(task);
+            }
+        }
+
+        exceededThreshold.sort(Comparator.comparing(T::getRealPriority));
+
+        list.clear();
+        list.addAll(exceededThreshold);
+        list.addAll(normalTasks);
+    }
 }
