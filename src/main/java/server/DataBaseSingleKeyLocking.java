@@ -8,16 +8,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DataBaseSingleKeyLocking implements DBInterface.DB {
     private Logs sessionFile;
 
-    private static HashMap<String, byte[]> dataBase;
+    private static HashMap<String, DataEntry> dataBase;
     private final ReentrantLock lockDataBase = new ReentrantLock();
-
-    private final HashMap<String, ReentrantLock> keyLocks = new HashMap<>();
-    private final ReentrantLock lockKeyLocks = new ReentrantLock();
 
     private final Map<String, CondKey> waitingCond = new HashMap<>();
     private final ReentrantLock lockWaitingCond = new ReentrantLock();
@@ -28,26 +26,32 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
         this.sessionFile = sessionFile;
     }
 
-    private ReentrantLock getKeyLock(String key) {
-        lockKeyLocks.lock();
-        try {
-            return keyLocks.computeIfAbsent(key, k -> new ReentrantLock());
-        } finally {
-            lockKeyLocks.unlock();
-        }
-    }
-
     @Override
     public void put(String key, byte[] data) {
-        ReentrantLock keyLock = getKeyLock(key);
-        keyLock.lock();
+        DataEntry entry;
+        Lock entryLock;
+
+        lockDataBase.lock();
+        try {
+            entry = dataBase.get(key);
+            if (entry == null) {
+                entry = new DataEntry(null);
+                dataBase.put(key, entry);
+            }
+
+            entryLock = entry.getLock();
+            entryLock.lock();
+        } finally {
+            lockDataBase.unlock();
+        }
+
         try {
             String timestamp = getCurrentTimestamp();
             String dataS = new String(data, StandardCharsets.UTF_8);
             String message = timestamp + " | Put " + " | ID: " + key + " | value: " + dataS;
             sessionFile.log(message);
 
-            dataBase.put(key, data);
+            entry.setData(data);
 
             if (!waitingCond.isEmpty()) {
                 lockWaitingCond.lock();
@@ -64,22 +68,44 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
 
             logAllDataMain();
         } finally {
-            keyLock.unlock();
+            entryLock.unlock();
         }
     }
 
     @Override
     public void multiPut(Map<String, byte[]> pairs) {
-        String timestamp = getCurrentTimestamp();
-        pairs.forEach((key, value) -> {
-            ReentrantLock keyLock = getKeyLock(key);
-            keyLock.lock();
-            try {
+        Map<String, Lock> entryLocks = new HashMap<>();
+
+        lockDataBase.lock();
+        try {
+            for (String key : pairs.keySet()) {
+                DataEntry entry = dataBase.get(key);
+                if (entry == null) {
+                    entry = new DataEntry(null);
+                    dataBase.put(key, entry);
+                }
+                entryLocks.put(key, entry.getLock());
+            }
+
+            for (Lock lock : entryLocks.values()) {
+                lock.lock();
+            }
+        } finally {
+            lockDataBase.unlock();
+        }
+
+        try {
+            String timestamp = getCurrentTimestamp();
+            for (Map.Entry<String, byte[]> pair : pairs.entrySet()) {
+                String key = pair.getKey();
+                byte[] value = pair.getValue();
+                DataEntry entry = dataBase.get(key);
+
                 String dataS = new String(value, StandardCharsets.UTF_8);
-                String message = timestamp + " | MultiPut " + " | Key: " + key + " | value: " + dataS;
+                String message = timestamp + " | MultiPut " + " | Key: " + key + " | Value: " + dataS;
                 sessionFile.log(message);
 
-                dataBase.put(key, value);
+                entry.setData(value);
 
                 if (!waitingCond.isEmpty()) {
                     lockWaitingCond.lock();
@@ -93,115 +119,154 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
                         lockWaitingCond.unlock();
                     }
                 }
-
-                logAllDataMain();
-            } finally {
-                keyLock.unlock();
-            }
-        });
-    }
-
-    @Override
-    public byte[] get(String key) {
-        ReentrantLock keyLock = getKeyLock(key);
-        keyLock.lock();
-        byte[] data = null;
-        try {
-            String timestamp = getCurrentTimestamp();
-            String message = timestamp + " | Get ";
-            sessionFile.log(message);
-            message = timestamp + " | Data during Get";
-            sessionFile.log(message);
-            logAllDataMain();
-    
-            data = dataBase.get(key);
-    
-            if (data != null) {
-                String dataS = new String(data, StandardCharsets.UTF_8);
-                message = timestamp + " | Get result " + " | ID: " + key + " | value: " + dataS;
-                sessionFile.log(message);
             }
 
             logAllDataMain();
         } finally {
-            keyLock.unlock();
-        }
-    
-        return data;
-    }
-
-    public Map<String, byte[]> multiGetLockAll(Set<String> keys) {
-        Map<String, byte[]> resultMap = new HashMap<>();
-        String timestamp = getCurrentTimestamp();
-    
-        sessionFile.log(timestamp + " | MultiGet " + " | nº of keys: " + keys.size());
-        sessionFile.log(timestamp + " | Data during MultiGet");
-    
-        for (String key : keys) {
-            ReentrantLock keyLock = getKeyLock(key);
-            keyLock.lock();
-            try {
-                byte[] value = dataBase.get(key);
-                resultMap.put(key, value);
-    
-                sessionFile.log(timestamp + " | MultiGet " + " | Key: " + key + " | Value: " + 
-                    (value != null ? new String(value, StandardCharsets.UTF_8) : "null"));
-
-                logAllDataMain();
-            } finally {
-                keyLock.unlock();
+            for (Lock lock : entryLocks.values()) {
+                lock.unlock();
             }
         }
+    }
+
+    @Override
+    public byte[] get(String key) {
+        DataEntry entry;
+        Lock entryLock;
     
+        lockDataBase.lock();
+        try {
+            entry = dataBase.get(key);
+            if (entry == null) {
+                return null;
+            }
+    
+            entryLock = entry.getLock();
+            entryLock.lock();
+        } finally {
+            lockDataBase.unlock();
+        }
+    
+        try {
+            String timestamp = getCurrentTimestamp();
+            sessionFile.log(timestamp + " | Get " + " | ID: " + key);
+    
+            byte[] data = entry.getData();
+            if (data != null) {
+                String dataS = new String(data, StandardCharsets.UTF_8);
+                sessionFile.log(timestamp + " | Get result " + " | value: " + dataS);
+            }
+            return data;
+        } finally {
+            entryLock.unlock();
+        }
+    }
+
+    //@Override
+    public Map<String, byte[]> multiGetLockAll(Set<String> keys) {
+        Map<String, byte[]> resultMap = new HashMap<>();
+        Map<String, Lock> entryLocks = new HashMap<>();
+
+        lockDataBase.lock();
+        try {
+            for (String key : keys) {
+                DataEntry entry = dataBase.get(key);
+                if (entry != null) {
+                    entryLocks.put(key, entry.getLock());
+                }
+            }
+
+            for (Lock lock : entryLocks.values()) {
+                lock.lock();
+            }
+        } finally {
+            lockDataBase.unlock();
+        }
+
+        try {
+            String timestamp = getCurrentTimestamp();
+            sessionFile.log(timestamp + " | MultiGet " + " | nº of keys: " + keys.size());
+            sessionFile.log(timestamp + " | Data during MultiGet");
+
+            for (String key : keys) {
+                DataEntry entry = dataBase.get(key);
+                byte[] value = entry != null ? entry.getData() : null;
+                resultMap.put(key, value);
+
+                sessionFile.log(timestamp + " | MultiGet " + " | Key: " + key + " | Value: " +
+                    (value != null ? new String(value, StandardCharsets.UTF_8) : "null"));
+            }
+
+            logAllDataMain();
+        } finally {
+            for (Lock lock : entryLocks.values()) {
+                lock.unlock();
+            }
+        }
+
         return resultMap;
     }
 
     @Override
     //public Map<String, byte[]> multiGetLockToCopy(Set<String> keys) {
     public Map<String, byte[]> multiGet(Set<String> keys) {
-        String timestamp;
-        HashMap<String, byte[]> dataBaseCopy;
         Map<String, byte[]> resultMap = new HashMap<>();
-    
+        Map<String, DataEntry> entryMap = new HashMap<>();
+
         lockDataBase.lock();
         try {
-            timestamp = getCurrentTimestamp();
-            sessionFile.log(timestamp + " | MultiGetLockToCopy " + " | nº of keys: " + keys.size());
-            sessionFile.log(timestamp + " | Data during MultiGetLockToCopy");
-            logAllDataMain();
-    
-            dataBaseCopy = new HashMap<>(dataBase);
+            for (String key : keys) {
+                DataEntry entry = dataBase.get(key);
+                if (entry != null) {
+                    entryMap.put(key, entry);
+                }
+            }
         } finally {
             lockDataBase.unlock();
         }
-    
-        for (String key : keys) {
-            byte[] value = dataBaseCopy.get(key);
-            resultMap.put(key, value);
-    
-            sessionFile.log(timestamp + " | MultiGetLockToCopy " + " | Key: " + key + " | Value: " + 
-                (value != null ? new String(value, StandardCharsets.UTF_8) : "null"));
+
+        for (Map.Entry<String, DataEntry> pair : entryMap.entrySet()) {
+            String key = pair.getKey();
+            DataEntry entry = pair.getValue();
+
+            Lock entryLock = entry.getLock();
+            entryLock.lock();
+            try {
+                String timestamp = getCurrentTimestamp();
+                sessionFile.log(timestamp + " | MultiGet " + " | Key: " + key);
+
+                byte[] value = entry.getData();
+                resultMap.put(key, value);
+
+                sessionFile.log(timestamp + " | MultiGet result " + " | Value: " +
+                    (value != null ? new String(value, StandardCharsets.UTF_8) : "null"));
+            } finally {
+                entryLock.unlock();
+            }
         }
+
         logAllDataMain();
-    
         return resultMap;
     }
 
     @Override
     public byte[] getWhen(String key, String keyCond, byte[] valueCond) throws InterruptedException {
-        byte[] wantedData = verifyIfCondAlreadyMet(key, keyCond, valueCond);
-        if (wantedData != null) return wantedData;
+        byte[] result = verifyIfCondAlreadyMet(key, keyCond, valueCond);
+        if (result != null) {
+            return result;
+        }
 
         CondKey newCond = new CondKey(valueCond);
-        waitingCond.put(keyCond, newCond);
-
         lockWaitingCond.lock();
         try {
+            waitingCond.put(keyCond, newCond);
+
             while (!newCond.isMet()) {
                 conditionMet.await();
             }
+
             logAllDataMain();
-            return get(key);
+            return verifyIfCondAlreadyMet(key, keyCond, valueCond);
         } finally {
             waitingCond.remove(keyCond);
             lockWaitingCond.unlock();
@@ -209,15 +274,15 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
     }
 
     private byte[] verifyIfCondAlreadyMet(String key, String keyCond, byte[] valueCond) {
-        ReentrantLock condLock = getKeyLock(keyCond);
-        ReentrantLock keyLock = getKeyLock(key);
+        Lock condLock = dataBase.get(keyCond).getLock();
+        Lock keyLock = dataBase.get(key).getLock();
 
         condLock.lock();
         keyLock.lock();
         try {
-            byte[] currentCondValue = dataBase.get(keyCond);
+            byte[] currentCondValue = dataBase.get(keyCond).getData();
             if (currentCondValue != null && Arrays.equals(currentCondValue, valueCond)) {
-                return dataBase.get(key);
+                return dataBase.get(key).getData();
             }
             return null;
         } finally {
@@ -234,7 +299,7 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
         lockDataBase.lock();
         try {
             dataBase.forEach((key, value) -> {
-                String data = new String(value, StandardCharsets.UTF_8);
+                String data = new String(value.getData(), StandardCharsets.UTF_8);
                 System.out.println("ID: " + key + " - data: " + data);
             });
             
@@ -252,12 +317,10 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
             throw new IllegalStateException("Database not initialized");
         }
         
-        lockDataBase.lock();
-        try {
             String timestamp = getCurrentTimestamp();
             if(!dataBase.isEmpty()) {
                 dataBase.forEach((key, value) -> {
-                    String data = new String(value, StandardCharsets.UTF_8);
+                    String data = new String(value.getData(), StandardCharsets.UTF_8);
                     String message = timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | ID: " + key + " - data: " + data;
                     System.out.println(message);
                     sessionFile.log(message);
@@ -268,31 +331,5 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
                 System.out.println(message);
                 sessionFile.log(message);
             }
-        } finally {
-            lockDataBase.unlock();
-        }
     }
 }
-
-/** getWhen se a variavel for volatil
-public byte[] getWhen(String key, String keyCond, byte[] valueCond) throws InterruptedException {
-    byte[] currentCondValue = get(keyCond); // this uses the get function above
-    
-    if (currentCondValue != null && Arrays.equals(currentCondValue, valueCond)) {
-        return get(key);
-    }
-
-    CondKey newCond = new CondKey(valueCond);
-    waitingCond.put(keyCond, newCond);  // Track condition in waitingCond
-
-    lockWaitingCond.lock();
-    try {
-        while (!newCond.met) {  // Wait until met flag is true
-            conditionMet.await();
-        }
-        waitingCond.remove(keyCond);
-        return get(key);
-    } finally {
-        lockWaitingCond.unlock();
-    }
-}  */

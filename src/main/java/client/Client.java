@@ -306,9 +306,9 @@ public class Client implements AutoCloseable {
     }
 
     private void receiveMessage(DataInputStream in) throws IOException {
+        SavedResponse newResponse = null;
         try {
             while (!turnOff) {
-                SavedResponse newResponse = null;
                 byte opcodeByte = in.readByte();
                 long arrivedTime = Instant.now().toEpochMilli();
     
@@ -423,8 +423,12 @@ public class Client implements AutoCloseable {
                 if (newResponse != null) {
                     arrivedReplys.addLast(newResponse);
                 }
+                
             }
         } catch (IOException e) {
+            if (newResponse == null) {
+                return;
+            }
             System.out.println("Erro ao receber mensagem: " + e.getMessage());
             throw e;
         }
