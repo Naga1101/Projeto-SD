@@ -187,7 +187,7 @@ public class DataBase implements DBInterface.DB {
         byte[] wantedData = verifyIfCondAlreadyMet(key, keyCond, valueCond);
         if(wantedData != null) return wantedData;
 
-        CondKey newCond = new CondKey(valueCond);
+        CondKey newCond = new CondKey(valueCond, lockWaitingCond);
         waitingCond.put(keyCond, newCond);
 
         lockWaitingCond.lock();

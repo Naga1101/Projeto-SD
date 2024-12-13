@@ -256,7 +256,7 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
             return result;
         }
 
-        CondKey newCond = new CondKey(valueCond);
+        CondKey newCond = new CondKey(valueCond,lockWaitingCond);
         lockWaitingCond.lock();
         try {
             waitingCond.put(keyCond, newCond);

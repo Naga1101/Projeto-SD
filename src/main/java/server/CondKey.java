@@ -8,16 +8,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class CondKey {
     private final byte[] data;
     private boolean met;
-    private final ReentrantLock lock = new ReentrantLock();
+    private final Lock lock = new ReentrantLock();
+    private final Condition condition;
 
-    CondKey(byte[] data) {
+    CondKey(byte[] data, ReentrantLock lock) {
         this.data = data;
         this.met = false;
+        this.condition = lock.newCondition();
     }
 
     public byte[] getData(){
@@ -40,6 +43,10 @@ public class CondKey {
         } finally {
             lock.unlock();
         }
+    }
+
+    public Condition getCondition() {
+        return condition;
     }
 }
 

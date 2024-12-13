@@ -25,7 +25,6 @@ public class DataBaseWithBatch implements DBInterface.DB {
     // Map of conditions waiting in getWhen
     private final Map<String, CondKey> waitingCond = new HashMap<>();
     private final ReentrantLock lockWaitingCond = new ReentrantLock();
-    private final Condition conditionMet = lockWaitingCond.newCondition();
 
     // Timer for batch
     private BatchFlushTimer batchFlushTimer;
@@ -46,6 +45,7 @@ public class DataBaseWithBatch implements DBInterface.DB {
     // puts na batch e caso necessário chamam o flush
     @Override
     public void put(String key, byte[] data){
+        System.out.println("Estou a dar put a " + key);
         batchFlushTimer.resetTimer();
 
         String timestamp;
@@ -72,10 +72,13 @@ public class DataBaseWithBatch implements DBInterface.DB {
             if(!waitingCond.isEmpty()){
                 lockWaitingCond.lock();
                 try {
+                    System.out.println("Verificar se existe alguem à espera");
                     CondKey cond = waitingCond.get(key);
+                    System.out.println("Cond key: " + cond);
                     if (cond != null && Arrays.equals(data, cond.getData())) {
+                        System.out.println("Cond: " + cond + " " + data);
                         cond.setMet();
-                        conditionMet.signalAll(); 
+                        cond.getCondition().signal();
                     }
                 } finally {
                     lockWaitingCond.unlock();
@@ -213,28 +216,6 @@ public class DataBaseWithBatch implements DBInterface.DB {
         HashMap<String, byte[]> dataBaseCopy;
         Map<String, byte[]>  resultMap = new HashMap<>();
 
-        /**
-        lockBatch.lock();
-        try {
-            timestamp = getCurrentTimestamp();
-            String message = timestamp + " | MultiGet " + " | nº of keys: " + keys.size();
-            sessionFile.log(message);
-            message = timestamp + " | Data during MultiGet";
-            sessionFile.log(message);
-            logAllDataBatch();
-            logAllDataMain();
-
-            batchCopy = new HashMap<>(batch);
-
-            lockDataBase.lock();
-            try{
-                dataBaseCopy = new HashMap<>(dataBase);
-            } finally {
-                lockDataBase.unlock();
-            }
-        } finally {
-            lockBatch.unlock();
-        }*/
         lockBatch.lock();
         try {
             timestamp = getCurrentTimestamp();
@@ -282,17 +263,21 @@ public class DataBaseWithBatch implements DBInterface.DB {
 
     @Override
     public byte[] getWhen(String key, String keyCond, byte[] valueCond) throws InterruptedException {
+        System.out.println("GetWhen");
         byte[] wantedData = verifyIfCondAlreadyMet(key, keyCond, valueCond);
+        System.out.println("Wanted data: " + wantedData);
         if(wantedData != null) return wantedData;
     
-        CondKey newCond = new CondKey(valueCond);
-        waitingCond.put(keyCond, newCond);  
+        CondKey newCond = new CondKey(valueCond, lockWaitingCond);
+        waitingCond.put(keyCond, newCond);
     
         lockWaitingCond.lock();
         try {
-            while (!newCond.isMet()) {  
-                conditionMet.await();
+            while (!newCond.isMet()) {
+                System.out.println("Waiting for new cond");
+                newCond.getCondition().await();
             }
+            System.out.println("Cond: " + newCond);
             return get(key);
         } finally {
             waitingCond.remove(keyCond);
@@ -351,14 +336,13 @@ public class DataBaseWithBatch implements DBInterface.DB {
             try{
                 dataBase.putAll(batch);
                 batch.clear();
+                message = timestamp + " | Data after flush";
+                sessionFile.log(message);
+                logAllDataBatch();
+                logAllDataMain();
             } finally {
                 lockDataBase.unlock();
             }
-
-            message = timestamp + " | Data after flush";
-            sessionFile.log(message);
-            logAllDataBatch();
-            logAllDataMain();
         } finally {
             lockBatch.unlock();
         }
@@ -387,11 +371,10 @@ public class DataBaseWithBatch implements DBInterface.DB {
     }
 
     public void forceFlushBatch(){
-        System.out.println("Flushing batch by force");
         lockBatch.lock();
         try {
             String timestamp = getCurrentTimestamp();
-            String message = timestamp + " | Normal Flush ";
+            String message = timestamp + " | Timed Flush ";
             sessionFile.log(message);
             message = timestamp + " | Data before flush";
             sessionFile.log(message);
@@ -402,14 +385,14 @@ public class DataBaseWithBatch implements DBInterface.DB {
             try{
                 dataBase.putAll(batch);
                 batch.clear();
+
+                message = timestamp + " | Data after flush";
+                sessionFile.log(message);
+                logAllDataBatch();
+                logAllDataMain();
             } finally {
                 lockDataBase.unlock();
             }
-
-            message = timestamp + " | Data after flush";
-            sessionFile.log(message);
-            logAllDataBatch();
-            logAllDataMain();
         } finally {
             lockBatch.unlock();
         }
@@ -434,31 +417,26 @@ public class DataBaseWithBatch implements DBInterface.DB {
         if (dataBase == null) {
             throw new IllegalStateException("Database not initialized");
         }
-        
-        lockDataBase.lock();
-        try {
-            String timestamp = getCurrentTimestamp();
-            if(!dataBase.isEmpty()) {
-                dataBase.forEach((key, value) -> {
-                    String dataS;
-                    if (value != null) {
-                        dataS = new String(value, StandardCharsets.UTF_8);
-                    } else {
-                        dataS = null;
-                        System.err.println("Warning: Attempted to create a String from a null byte array.");
-                    }
-                    String message = timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | ID: " + key + " - data: " + dataS;
-                    System.out.println(message);
-                    sessionFile.log(message);
-                });
-            }
-            else {
-                String message = timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | Empty ";
+
+        String timestamp = getCurrentTimestamp();
+        if(!dataBase.isEmpty()) {
+            dataBase.forEach((key, value) -> {
+                String dataS;
+                if (value != null) {
+                    dataS = new String(value, StandardCharsets.UTF_8);
+                } else {
+                    dataS = null;
+                    System.err.println("Warning: Attempted to create a String from a null byte array.");
+                }
+                String message = timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | ID: " + key + " - data: " + dataS;
                 System.out.println(message);
                 sessionFile.log(message);
-            }
-        } finally {
-            lockDataBase.unlock();
+            });
+        }
+        else {
+            String message = timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | Empty ";
+            System.out.println(message);
+            sessionFile.log(message);
         }
     }
 
@@ -466,31 +444,26 @@ public class DataBaseWithBatch implements DBInterface.DB {
         if (batch == null) {
             throw new IllegalStateException("Database not initialized");
         }
-        
-        lockBatch.lock();
-        try {
-            String timestamp = getCurrentTimestamp();
-            if(!batch.isEmpty()) {
-                batch.forEach((key, value) -> {
-                    String dataS;
-                    if (value != null) {
-                        dataS = new String(value, StandardCharsets.UTF_8);
-                    } else {
-                        dataS = null;
-                        System.err.println("Warning: Attempted to create a String from a null byte array.");
-                    }
-                    String message = timestamp + " | Batch Content: " + " | Size of batch: " + batch.size() + " | ID: " + key + " - data: " + dataS;
-                    System.out.println(message);
-                    sessionFile.log(message);
-                });
-            }
-            else {
-                String message = timestamp + " | Batch Content: " + " | Size of batch: " + batch.size() + " | Empty ";
+
+        String timestamp = getCurrentTimestamp();
+        if(!batch.isEmpty()) {
+            batch.forEach((key, value) -> {
+                String dataS;
+                if (value != null) {
+                    dataS = new String(value, StandardCharsets.UTF_8);
+                } else {
+                    dataS = null;
+                    System.err.println("Warning: Attempted to create a String from a null byte array.");
+                }
+                String message = timestamp + " | Batch Content: " + " | Size of batch: " + batch.size() + " | ID: " + key + " - data: " + dataS;
                 System.out.println(message);
                 sessionFile.log(message);
-            }
-        } finally {
-            lockBatch.unlock();
+            });
+        }
+        else {
+            String message = timestamp + " | Batch Content: " + " | Size of batch: " + batch.size() + " | Empty ";
+            System.out.println(message);
+            sessionFile.log(message);
         }
     }
 
