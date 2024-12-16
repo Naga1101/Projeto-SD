@@ -41,14 +41,9 @@ public class SavedResponse {
     public SavedResponse(Object command, String key, byte[] data, long requestedTime, long arrivedTime, String username) {
         this.command = command;
         this.key = key;
-    
-        // If data is null, replace it with "null".getBytes()
         this.data = (data != null) ? data : "null".getBytes();
-    
         this.requestedTime = formatTimestamp(requestedTime);
         this.arrivedTime = formatTimestamp(arrivedTime);
-    
-        // Log the reply, converting the data into a string (even if it's "null")
         logCommands.logReply(username, command.toString(), requestedTime, key, new String(this.data));
     }
     
