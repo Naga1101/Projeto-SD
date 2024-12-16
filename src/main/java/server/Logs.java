@@ -5,12 +5,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 
 public class Logs {
-    private static final String LOG_FOLDER = "../logs";
+    private static final String LOG_FOLDER = new File(".").getAbsolutePath() + "/logs/server-logs";
     private static final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm.ss.SSS");
     
     private File sessionLogFile;

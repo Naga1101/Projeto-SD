@@ -32,6 +32,7 @@ public class Client implements AutoCloseable {
     private final int BufferSize = 15;
     private BoundedBuffer<CliToServMsg> sendBuffer = new BoundedBuffer<>(BufferSize);
     private List<SavedResponse> arrivedReplys = new LinkedList<>();
+    private String username = "";
 
     public static void main(String[] args) {
         Client client = new Client();
@@ -105,7 +106,10 @@ public class Client implements AutoCloseable {
                     response.deserialize(in); 
                     reply = response.getReply();
 
-                    if(reply == 2) loggedIn = true;
+                    if(reply == 2) {
+                        loggedIn = true;
+                        username = name;
+                    }
                     
                 }
                 else if(option == autenticacao.REGISTER.ordinal()){
@@ -337,7 +341,7 @@ public class Client implements AutoCloseable {
                                 try {
                                     getReply.deserialize(in);
                                     newResponse = new SavedResponse(commandGetCode, getReply.getKey(),
-                                            getReply.getReply(), getReply.getRequestedTimestamp(), arrivedTime);
+                                            getReply.getReply(), getReply.getRequestedTimestamp(), arrivedTime, username);
                                 } catch (IOException e) {
                                     System.out.println("Erro ao desserializar GetReply: " + e.getMessage());
                                     continue;
@@ -349,7 +353,7 @@ public class Client implements AutoCloseable {
                                 try {
                                     multiGetReply.deserialize(in);
                                     newResponse = new SavedResponse(commandGetCode, multiGetReply.getReply(),
-                                            multiGetReply.getRequestedTimestamp(), arrivedTime);
+                                            multiGetReply.getRequestedTimestamp(), arrivedTime, username);
                                 } catch (IOException e) {
                                     System.out.println("Erro ao desserializar MultiGetReply: " + e.getMessage());
                                     continue;
@@ -361,7 +365,7 @@ public class Client implements AutoCloseable {
                                 try {
                                     getWhenReply.deserialize(in);
                                     newResponse = new SavedResponse(commandGetCode, getWhenReply.getKey(),
-                                            getWhenReply.getReply(), getWhenReply.getRequestedTimestamp(), arrivedTime);
+                                            getWhenReply.getReply(), getWhenReply.getRequestedTimestamp(), arrivedTime, username);
                                 } catch (IOException e) {
                                     System.out.println("Erro ao desserializar GetWhenReply: " + e.getMessage());
                                     continue;
@@ -390,7 +394,7 @@ public class Client implements AutoCloseable {
                                 try {
                                     putReply.deserialize(in);
                                     newResponse = new SavedResponse(commandPutCode, putReply.getKey(),
-                                            putReply.getRequestedTimestamp(), arrivedTime);
+                                            putReply.getRequestedTimestamp(), arrivedTime, username);
                                 } catch (IOException e) {
                                     System.out.println("Erro ao desserializar PutReply: " + e.getMessage());
                                     continue;
@@ -402,7 +406,7 @@ public class Client implements AutoCloseable {
                                 try {
                                     multiPutReply.deserialize(in);
                                     newResponse = new SavedResponse(commandPutCode,
-                                            multiPutReply.getRequestedTimestamp(), arrivedTime);
+                                            multiPutReply.getRequestedTimestamp(), arrivedTime, username);
                                 } catch (IOException e) {
                                     System.out.println("Erro ao desserializar MultiPutReply: " + e.getMessage());
                                     continue;

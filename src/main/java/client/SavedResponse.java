@@ -4,9 +4,12 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Map;
+import utils.LogCommands;
 
 public class SavedResponse {
+    private LogCommands logCommands = new LogCommands(true);
     private Object command;
     private String requestedTime;
     private String arrivedTime;
@@ -16,37 +19,54 @@ public class SavedResponse {
 
     public SavedResponse() { }
 
-    public SavedResponse(Object command, long requestedTime, long arrivedTime) {
+    public SavedResponse(Object command, long requestedTime, long arrivedTime, String username) {
         this.command = command;
         this.key = "key-set";
         this.data = "data-saved".getBytes();
         this.requestedTime = formatTimestamp(requestedTime);
         this.arrivedTime = formatTimestamp(arrivedTime);
+        logCommands.logReply(username, command.toString(), requestedTime, key, "data-saved");
     }
 
 
-    public SavedResponse(Object command, String key, long requestedTime, long arrivedTime) {
+    public SavedResponse(Object command, String key, long requestedTime, long arrivedTime, String username) {
         this.command = command;
         this.key = key;
         this.data = "data-saved".getBytes();
         this.requestedTime = formatTimestamp(requestedTime);
         this.arrivedTime = formatTimestamp(arrivedTime);
+        logCommands.logReply(username, command.toString(), requestedTime, key, "data-saved");
     }
 
-    public SavedResponse(Object command, String key, byte[] data, long requestedTime, long arrivedTime) {
+    public SavedResponse(Object command, String key, byte[] data, long requestedTime, long arrivedTime, String username) {
         this.command = command;
         this.key = key;
-        this.data = data;
+    
+        // If data is null, replace it with "null".getBytes()
+        this.data = (data != null) ? data : "null".getBytes();
+    
         this.requestedTime = formatTimestamp(requestedTime);
         this.arrivedTime = formatTimestamp(arrivedTime);
+    
+        // Log the reply, converting the data into a string (even if it's "null")
+        logCommands.logReply(username, command.toString(), requestedTime, key, new String(this.data));
+    }
+    
+
+    public SavedResponse(Object command, Map<String, byte[]> multigetData, long requestedTime, long arrivedTime, String username) {
+        this.command = command;
+        this.multigetData = new HashMap<>();
+        for (Map.Entry<String, byte[]> entry : multigetData.entrySet()) {
+            byte[] value = entry.getValue();
+            this.multigetData.put(entry.getKey(), (value != null) ? value : "null".getBytes());
+        }
+        this.requestedTime = formatTimestamp(requestedTime);
+        this.arrivedTime = formatTimestamp(arrivedTime);
+        for (Map.Entry<String, byte[]> entry : this.multigetData.entrySet()) {
+            logCommands.logReply(username, command.toString(), requestedTime, entry.getKey(), new String(entry.getValue()));
+        }
     }
 
-    public SavedResponse(Object command, Map<String, byte[]> multigetData, long requestedTime, long arrivedTime) {
-        this.command = command;
-        this.multigetData = multigetData;
-        this.requestedTime = formatTimestamp(requestedTime);
-        this.arrivedTime = formatTimestamp(arrivedTime);
-    }
 
     private String formatTimestamp(long timestamp) {
         LocalDateTime dateTime = Instant.ofEpochMilli(timestamp)

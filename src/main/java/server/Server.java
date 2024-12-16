@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import utils.BoundedBuffer;
+import utils.LogCommands;
 
 public class Server {
     private static final int PORT = 12345;
@@ -16,7 +16,8 @@ public class Server {
     // Variaveis relativas a autenticação de users
 
     private static int currentOnlineUsers = 0;
-    private static AtomicInteger userIdCounter = new AtomicInteger(1);
+    private static int userIdCounter = 1;
+    private static final Lock lockCounter = new ReentrantLock();
     private static UsersAuthenticator usersAuthenticator;
     private static HashMap<Integer, WaintingUsers> mapWaitingUsers = new HashMap<>();
     private static final List<Integer> arrivalOrder = new LinkedList<>();
@@ -24,6 +25,7 @@ public class Server {
     private static Condition waitingQueueCondition = waitingUsersLock.newCondition();
     private static Lock usersBufferMapLock = new ReentrantLock(); 
     private static HashMap<String, BoundedBufferWithLock> usersOutputBuffer = new HashMap<>();
+    private static LogCommands commandLogs = new LogCommands();
 
     // variaveis relativas à gestão de dados
     public static DBInterface.DB db;
@@ -107,7 +109,7 @@ public class Server {
                 // System.out.println("Client connected: " + clientSocket.getInetAddress());
 
                 WaintingUsers newUser = new WaintingUsers(clientSocket);
-                int id = userIdCounter.getAndIncrement();
+                int id = getNextId();
 
                 waitingUsersLock.lock();
                 try {
@@ -148,7 +150,7 @@ public class Server {
 
                 if (nextUser != null) {
                     currentOnlineUsers++;
-                    new Thread(new ClientHandler(nextUser.getMySocket(), usersAuthenticator)).start();
+                    new Thread(new ClientHandler(nextUser.getMySocket(), usersAuthenticator, commandLogs)).start();
                     System.out.println("Current OnlineUsers: " + currentOnlineUsers);
                 }
 
@@ -244,6 +246,17 @@ public class Server {
             return usersOutputBuffer.get(name);
         } finally {
             usersBufferMapLock.unlock();
+        }
+    }
+
+    // incrementador para um id
+
+    public static int getNextId() {
+        lockCounter.lock();
+        try {
+            return userIdCounter++;
+        } finally {
+            lockCounter.unlock();
         }
     }
 }

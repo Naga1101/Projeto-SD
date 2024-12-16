@@ -13,6 +13,7 @@ import messagesFormat.*;
 import messagesFormat.MsgInterfaces.CliToServMsg;
 import messagesFormat.MsgInterfaces.IMessage;
 import utils.BoundedBuffer;
+import utils.LogCommands;
 
 public class ClientHandler implements Runnable, AutoCloseable {
     private Socket clientSocket;
@@ -22,13 +23,15 @@ public class ClientHandler implements Runnable, AutoCloseable {
     private Timer activeTimer;
     private static Runnable onTimeout = () -> System.out.println("Inactive for to long!!");
     private String user = "";
+    private static LogCommands commandLogs ;
     private final int BufferSize = 15;
     private BoundedBuffer<EncapsulatedMsg> inputBuffer;
     private BoundedBuffer<IMessage> outputBuffer;
 
-    public ClientHandler(Socket socket, UsersAuthenticator usersAuthenticator) {
+    public ClientHandler(Socket socket, UsersAuthenticator usersAuthenticator, LogCommands commandLogs ) {
         this.clientSocket = socket;
         this.usersAuthenticator = usersAuthenticator;
+        this.commandLogs = commandLogs;
         this.activeTimer = new Timer(onTimeout, usersAuthenticator);
         try {
             in = new DataInputStream(clientSocket.getInputStream());
@@ -254,19 +257,18 @@ public class ClientHandler implements Runnable, AutoCloseable {
         }
     }
 
-    // Por enquanto a conversão de encapsulatedMessage para scheduledtask é feita nesta thread
-    // visto que ela têm pouco trabalho, pode-se no futuro criar uma thread que faça isso?
-
     private void handleInputBuffer(){
         try {
             while (true) {
                 EncapsulatedMsg<CliToServMsg> EncapsulatedMsg = inputBuffer.pop();
-                
+                CliToServMsg message = EncapsulatedMsg.getMessage();
+
                 ScheduledTask taskToSchedule = new ScheduledTask<EncapsulatedMsg>(EncapsulatedMsg);
+                logNewCommand(message, taskToSchedule.getScheduledTimestamp());
 
                 TaskPriority priority = EncapsulatedMsg.getPriority();
                 taskToSchedule.setBasePriority(priority.getCode());
-                taskToSchedule.setRealPriority(priority.getCode());         
+                taskToSchedule.setRealPriority(priority.getCode());       
 
                 //System.out.println("Passei a tarefa do cliente para o main buffer " + taskToSchedule);
                 Server.unscheduledTaks.push(taskToSchedule);
@@ -274,6 +276,14 @@ public class ClientHandler implements Runnable, AutoCloseable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private void logNewCommand(CliToServMsg message, long time){
+        byte opcode = message.getOpcode();
+        byte subcode = message.getSubcode();
+
+        String comado = CommandMapper.getCommand(opcode, subcode);
+        commandLogs.logCommand(user, comado, time);
     }
 
     @Override
