@@ -19,3 +19,4 @@
 # Ignore logs directory
 logs/
 target/
+src/target/
