@@ -36,7 +36,7 @@ public class ThreadTask implements Runnable {
         else {
             for (int i = 0; i < requestData.getRequestedKeySets().size(); i++) {
                 Set<String> keys = requestData.getRequestedKeySets().get(i);
-                Map<String, byte[]> result = db.multiGetLockToCopy(keys);
+                Map<String, byte[]> result = db.multiGet(keys);
                 
                 System.out.println("Thread " + threadId + " retrieved (Second round):");
                 for (Map.Entry<String, byte[]> entry : result.entrySet()) {
