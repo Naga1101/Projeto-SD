@@ -50,3 +50,12 @@
         </plugins>
     </build>
 </project>
+
+<!--
+- mvn compile // compila o projeto
+- mvn clean   // limpa os files compilados
+
+- cd target/classes
+- java -cp target/classes server.Server (3 5 5 5 50)
+- java -cp target/classes client.Client
+-->

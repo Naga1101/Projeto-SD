@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 public class Logs {
-    private static final String LOG_FOLDER = new File(".").getAbsolutePath() + "/logs/server-logs";
+    private static final String LOG_FOLDER = new File(System.getProperty("user.dir"), "logs/server-logs").getAbsolutePath();
     private static final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm.ss.SSS");
     
     private File sessionLogFile;

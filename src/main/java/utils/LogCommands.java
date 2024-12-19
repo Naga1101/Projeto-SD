@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 public class LogCommands {
-    private static final String COMMANDS_FOLDER = new File(".").getAbsolutePath() + "/logs/clients-results";
+    private static final String COMMANDS_FOLDER = new File(System.getProperty("user.dir"), "logs/clients-results").getAbsolutePath();
     private static final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm.ss.SSS");
 
     private int sessionId;
@@ -20,6 +20,7 @@ public class LogCommands {
     public LogCommands() {
         this.sessionId = determineNextSessionId();
         this.sessionFolder = createSessionFolder();
+        System.out.println("LogCommands initialized. Session ID: " + sessionId);
     }
 
     public LogCommands(boolean useMostRecentSession) {
@@ -30,6 +31,7 @@ public class LogCommands {
             this.sessionId = determineNextSessionId(); // Fallback behavior
             this.sessionFolder = createSessionFolder();
         }
+        System.out.println("LogCommands initialized. Session ID: " + sessionId);
     }
 
     private int determineNextSessionId() {
@@ -76,6 +78,7 @@ public class LogCommands {
         if (!sessionFolder.exists()) {
             sessionFolder.mkdirs();
         }
+        System.out.println("Session folder created: " + sessionFolder.getAbsolutePath());
         return sessionFolder;
     }
 
@@ -84,6 +87,7 @@ public class LogCommands {
         if (!sessionFolder.exists()) {
             throw new IllegalStateException("Session folder does not exist: " + sessionFolder.getAbsolutePath());
         }
+        System.out.println("Using existing session folder: " + sessionFolder.getAbsolutePath());
         return sessionFolder;
     }
 
@@ -92,31 +96,28 @@ public class LogCommands {
         if (!clientFolder.exists()) {
             clientFolder.mkdirs();
         }
+        System.out.println("Client folder created: " + clientFolder.getAbsolutePath());
         return clientFolder;
     }
 
     public void logCommand(String user, String comando, long time) {
         File clientFolder = getClientFolder(user);
-    
         LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(time), ZoneId.systemDefault());
         String timestamp = dateTime.format(timeFormat);
-    
         String commandFileName = String.format("%d-%s-%s.txt", time, timestamp, comando);
         File commandLogFile = new File(clientFolder, commandFileName);
 
-        // Log the command into the file
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(commandLogFile, true))) {
             writer.write("Comando: " + comando + " | " + " Hora de Pedido: " + timestamp);
             writer.newLine();
+            System.out.println("Logged command: " + comando + " for user: " + user);
         } catch (IOException e) {
             System.err.println("Failed to write command log: " + e.getMessage());
         }
     }
-    
 
     public void logReply(String user, String comando, long time, String key, String data) {
         File clientFolder = getClientFolder(user);
-
         LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(time), ZoneId.systemDefault());
         String timestamp = dateTime.format(timeFormat);
         String commandFileName = String.format("%d-%s-%s.txt", time, timestamp, comando);
@@ -125,21 +126,9 @@ public class LogCommands {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(commandLogFile, true))) {
             writer.write("Hora de Pedido: " + timestamp + "| comando: " + comando + " | chave: " + key + " | data: " + data);
             writer.newLine();
+            System.out.println("Logged reply for command: " + comando + " for user: " + user);
         } catch (IOException e) {
             System.err.println("Failed to write reply to command log: " + e.getMessage());
         }
     }
-
-    /**
-    public static void main(String[] args) {
-        // Example usage
-        LogCommands logger = new LogCommands();
-
-        // Simulate client interactions
-        logger.logCommand("client1", "GET /resource");
-        logger.logReply("client1", "200 OK");
-
-        logger.logCommand("client2", "POST /resource");
-        logger.logReply("client2", "201 Created");
-    } */
 }
