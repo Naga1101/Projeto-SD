@@ -327,7 +327,7 @@ public class Client implements AutoCloseable {
         SavedResponse newResponse = null;
         while (!turnOff) {
             try {
-                byte opcodeByte = in.readByte(); // Tenta ler o próximo byte
+                byte opcodeByte = in.readByte(); 
                 long arrivedTime = Instant.now().toEpochMilli();
                 commandType opcode;
                 

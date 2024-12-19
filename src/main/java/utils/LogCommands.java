@@ -31,7 +31,6 @@ public class LogCommands {
             this.sessionId = determineNextSessionId(); // Fallback behavior
             this.sessionFolder = createSessionFolder();
         }
-        System.out.println("LogCommands initialized. Session ID: " + sessionId);
     }
 
     private int determineNextSessionId() {
@@ -78,7 +77,6 @@ public class LogCommands {
         if (!sessionFolder.exists()) {
             sessionFolder.mkdirs();
         }
-        System.out.println("Session folder created: " + sessionFolder.getAbsolutePath());
         return sessionFolder;
     }
 
@@ -87,7 +85,6 @@ public class LogCommands {
         if (!sessionFolder.exists()) {
             throw new IllegalStateException("Session folder does not exist: " + sessionFolder.getAbsolutePath());
         }
-        System.out.println("Using existing session folder: " + sessionFolder.getAbsolutePath());
         return sessionFolder;
     }
 
@@ -96,7 +93,6 @@ public class LogCommands {
         if (!clientFolder.exists()) {
             clientFolder.mkdirs();
         }
-        System.out.println("Client folder created: " + clientFolder.getAbsolutePath());
         return clientFolder;
     }
 
@@ -110,7 +106,6 @@ public class LogCommands {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(commandLogFile, true))) {
             writer.write("Comando: " + comando + " | " + " Hora de Pedido: " + timestamp);
             writer.newLine();
-            System.out.println("Logged command: " + comando + " for user: " + user);
         } catch (IOException e) {
             System.err.println("Failed to write command log: " + e.getMessage());
         }

@@ -1,21 +1,35 @@
 package client;
 
-import enums.Enums.commandType;
-import enums.Enums.getCommand;
-import enums.Enums.putCommand;
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.Socket;
 import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import messagesFormat.*;
+import java.util.Set;
+
+import enums.Enums.commandType;
+import enums.Enums.getCommand;
+import enums.Enums.putCommand;
+import messagesFormat.AuthReply;
+import messagesFormat.ExitMsg;
+import messagesFormat.GetMsg;
+import messagesFormat.GetReply;
+import messagesFormat.GetWhenMsg;
+import messagesFormat.GetWhenReply;
+import messagesFormat.LoginMsg;
 import messagesFormat.MsgInterfaces.CliToServMsg;
+import messagesFormat.MultiGetMsg;
+import messagesFormat.MultiGetReply;
+import messagesFormat.MultiPutMsg;
+import messagesFormat.MultiPutReply;
+import messagesFormat.PutMsg;
+import messagesFormat.PutReply;
+import messagesFormat.RegisterMsg;
 import utils.BoundedBuffer;
 
 public class SimplifiedClient implements AutoCloseable {
@@ -27,6 +41,7 @@ public class SimplifiedClient implements AutoCloseable {
     private DataInputStream in;
     private DataOutputStream out;
     private String commandFilePath;
+    private long lastReadPosition = 0;
     private Scanner scanner = new Scanner(System.in);
 
     private final int BufferSize = 15;
@@ -41,10 +56,13 @@ public class SimplifiedClient implements AutoCloseable {
             out = new DataOutputStream(socket.getOutputStream());
             commandFilePath = clientFilePath;
 
-            try (BufferedReader reader = new BufferedReader(new FileReader(commandFilePath))) {
+            try (RandomAccessFile fileReader = new RandomAccessFile(commandFilePath, "r")) {
+                fileReader.seek(lastReadPosition);
                 String command;
-                while ((command = reader.readLine()) != null && !turnOff) {
+                while ((command = fileReader.readLine()) != null && !turnOff) {
+                    lastReadPosition = fileReader.getFilePointer();
                     executeAuthentication(command.trim());
+                    Thread.sleep(100);
                 }
             }
         } catch (IOException e) {
@@ -118,23 +136,7 @@ public class SimplifiedClient implements AutoCloseable {
             e.printStackTrace();
         }
     }
-
-    private void get(String key) throws Exception {
-        GetMsg msg = new GetMsg(key);
-        sendBuffer.push(msg);
-    }
-
-    private void put(String key, String value) throws Exception {
-        PutMsg msg = new PutMsg(key, value);
-        sendBuffer.push(msg);
-    }
-
-    private void multiPut(String filePath) throws Exception {
-        Map<String, byte[]> keyValuePairs = FileParser.parseFileToMap(filePath);
-        MultiPutMsg msg = new MultiPutMsg(keyValuePairs);
-        sendBuffer.push(msg);
-    }
-
+    
     private void exit() {
         turnOff = true;
         System.out.println("Exiting client");
@@ -146,19 +148,23 @@ public class SimplifiedClient implements AutoCloseable {
             Thread receiveThread = new Thread(() -> { 
                 try { 
                     receiveMessage(in);
-                 } catch (IOException e) { 
+                } catch (IOException e) { 
                     e.printStackTrace();
-                 } 
+                } 
             });
             sendThread.start();
             receiveThread.start(); 
 
-            try (BufferedReader reader = new BufferedReader(new FileReader(commandFilePath))) {
+            try (RandomAccessFile fileReader = new RandomAccessFile(commandFilePath, "r")) {
+                fileReader.seek(lastReadPosition);
                 String command;
-                while ((command = reader.readLine()) != null && !turnOff) {
-                    executeCommand(command.trim()); 
+                while ((command = fileReader.readLine()) != null && !turnOff) {
+                    lastReadPosition = fileReader.getFilePointer();
+                    executeCommand(command.trim());
+                    Thread.sleep(100);
                 }
-            } 
+            }
+
             sendThread.join(); 
             receiveThread.join(); 
         } catch (InterruptedException e) { 
@@ -167,25 +173,109 @@ public class SimplifiedClient implements AutoCloseable {
     } 
 
     private void executeCommand(String command) throws Exception { 
-        String[] parts = command.split(" ");
-        String action = parts[0];
-        System.out.println(action + " " + parts[1]);
-        switch (action.toUpperCase()) { 
-            case "GET": 
-                get(parts[1]); 
-                break; 
-            case "PUT": 
-                put(parts[1], parts[2]);
-                break; 
-            case "MULTIPUT": 
-                multiPut(parts[1]); 
-                break; 
-            case "EXIT": 
-                exit(); 
-                break; 
-            default: System.out.println("Unknown command: " + command); 
+    String[] parts = command.split(" ", 2);
+    String action = parts[0];
+
+    System.out.println(action + " " + (parts.length > 1 ? parts[1] : ""));
+
+    switch (action.toUpperCase()) { 
+        case "PUT": 
+        if (parts.length > 1) {
+            String[] putParts = parts[1].split(" ", 2);
+            if (putParts.length == 2) {
+                put(putParts[0], putParts[1]);
+            } else {
+                System.out.println("Missing arguments for PUT command.");
+            }
+        } else {
+            System.out.println("Missing arguments for PUT command.");
         }
-    } 
+        break; 
+        case "MULTIPUT": 
+        if (parts.length > 1) {
+            multiPut(parts[1]); 
+        } else {
+            System.out.println("Missing argument for MULTIPUT command.");
+        }
+        break; 
+        case "GET": 
+            if (parts.length > 1) {
+                get(parts[1]); 
+            } else {
+                System.out.println("Missing argument for GET command.");
+            }
+            break; 
+        case "MULTIGET":
+            if (parts.length > 1) {
+                multiGet(parts[1]);
+            } else {
+                System.out.println("Missing argument for MULTIGET command.");
+            }
+            break;
+        case "GETWHEN":
+            if (parts.length > 1) {
+                String[] getWhenParts = parts[1].split(" ", 3);
+                if (getWhenParts.length == 3) {
+                    getWhen(getWhenParts[0], getWhenParts[1], getWhenParts[2]);
+                } else {
+                    System.out.println("Missing arguments for GETWHEN command.");
+                }
+            } else {
+                System.out.println("Missing argument for GETWHEN command.");
+            }
+            break;
+        case "EXIT": 
+            exitLogout(); 
+            break; 
+        default: 
+            System.out.println("Unknown command: " + command); 
+        }
+    }
+
+    private void put(String key, String value) throws Exception {
+        PutMsg msg = new PutMsg(key, value);
+        sendBuffer.push(msg);
+    }
+
+    private void multiPut(String filePath) throws Exception {
+        if (filePath.startsWith("\"") && filePath.endsWith("\"")) {
+            filePath = filePath.substring(1, filePath.length() - 1);
+        }
+
+        Map<String, byte[]> keyValuePairs = FileParser.parseFileToMap(filePath);
+        MultiPutMsg msg = new MultiPutMsg(keyValuePairs);
+        sendBuffer.push(msg);
+    }
+
+    private void get(String key) throws Exception {
+        GetMsg msg = new GetMsg(key);
+        sendBuffer.push(msg);
+    }
+
+    private void multiGet(String filePath) throws Exception {
+        Set<String> keySet = FileParser.parseFileToSet(filePath);
+        MultiGetMsg msg = new MultiGetMsg(keySet);
+        sendBuffer.push(msg);
+    }
+
+    private void getWhen(String keyWhen, String keyCond, String valueCond) {
+        try {
+            GetWhenMsg msg = new GetWhenMsg(keyWhen, keyCond, valueCond);
+            sendBuffer.push(msg);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Failed to send GetWhen message");
+        }
+    }
+  
+    private void exitLogout() throws Exception {
+        CliToServMsg exitMsg = new ExitMsg();
+        sendBuffer.push(exitMsg);
+        System.out.println("Exiting client");
+        turnOff = true;
+    }
+
+    // Send e Receive iguais ao cliente normal
 
     private void sendMessage(DataOutputStream out) {
         try {
@@ -323,8 +413,6 @@ public class SimplifiedClient implements AutoCloseable {
             if (newResponse == null) {
                 return;
             }
-            System.out.println("Erro ao receber mensagem: " + e.getMessage());
-            throw e;
         }
     }
 
@@ -340,17 +428,13 @@ public class SimplifiedClient implements AutoCloseable {
         }
     }
 
-    public void close() {
+    @Override
+    public void close() throws Exception {
         try {
-            if (socket != null) {
-                socket.close();
-            }
-            if (in != null) {
-                in.close();
-            }
-            if (out != null) {
-                out.close();
-            }
+            if (in != null) in.close();
+            if (out != null) out.close();
+            if (socket != null) socket.close();
+            System.out.println("Cliente desconectou-se com sucesso!");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -358,6 +442,6 @@ public class SimplifiedClient implements AutoCloseable {
 
     public static void main(String[] args) throws Exception {
         SimplifiedClient client = new SimplifiedClient();
-        client.startClient("/home/naguiar/code/SD-Project github/Projeto-SD/Projeto-SD/src/test/files/clientsCommands/client1.txt");
+        client.startClient("/home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/clientsCommands/client1.txt");
     }
 }
