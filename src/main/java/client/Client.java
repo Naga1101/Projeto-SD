@@ -325,12 +325,12 @@ public class Client implements AutoCloseable {
 
     private void receiveMessage(DataInputStream in) throws IOException {
         SavedResponse newResponse = null;
-        try {
-            while (!turnOff) {
-                byte opcodeByte = in.readByte();
+        while (!turnOff) {
+            try {
+                byte opcodeByte = in.readByte(); // Tenta ler o próximo byte
                 long arrivedTime = Instant.now().toEpochMilli();
-    
                 commandType opcode;
+                
                 try {
                     opcode = commandType.fromCode(opcodeByte);
                 } catch (IllegalArgumentException e) {
@@ -442,15 +442,15 @@ public class Client implements AutoCloseable {
                     arrivedReplys.addLast(newResponse);
                 }
                 
+            } catch (IOException e) {
+                if (newResponse == null) {
+                    turnOff = true;
+                    return;
+                }
             }
-        } catch (IOException e) {
-            if (newResponse == null) {
-                return;
-            }
-            System.out.println("Erro ao receber mensagem: " + e.getMessage());
-            throw e;
         }
     }
+
 
     private void PrintSavedReplys() {
         if (arrivedReplys.isEmpty()) {
