@@ -1,0 +1,5 @@
+REGISTER testuser testpassword
+LOGIN testuser testpassword
+PUT key1 value1
+MULTIPUT /home/naguiar/code/SD-Project-github/Projeto-SD/Projeto-SD/src/test/files/MultiPutTestFiles/test_file10.txt
+EXIT

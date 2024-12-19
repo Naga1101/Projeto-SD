@@ -1,10 +1,5 @@
 package client;
 
-import enums.Enums.autenticacao;
-import enums.Enums.commandType;
-import enums.Enums.getCommand;
-import enums.Enums.optionCommand;
-import enums.Enums.putCommand;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -15,8 +10,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
-import messagesFormat.*;
+
+import enums.Enums.autenticacao;
+import enums.Enums.commandType;
+import enums.Enums.getCommand;
+import enums.Enums.optionCommand;
+import enums.Enums.putCommand;
+import messagesFormat.AuthReply;
+import messagesFormat.ExitMsg;
+import messagesFormat.GetMsg;
+import messagesFormat.GetReply;
+import messagesFormat.GetWhenMsg;
+import messagesFormat.GetWhenReply;
+import messagesFormat.LoginMsg;
 import messagesFormat.MsgInterfaces.CliToServMsg;
+import messagesFormat.MultiGetMsg;
+import messagesFormat.MultiGetReply;
+import messagesFormat.MultiPutMsg;
+import messagesFormat.MultiPutReply;
+import messagesFormat.PutMsg;
+import messagesFormat.PutReply;
+import messagesFormat.RegisterMsg;
 import utils.BoundedBuffer;
 
 public class Client implements AutoCloseable {
