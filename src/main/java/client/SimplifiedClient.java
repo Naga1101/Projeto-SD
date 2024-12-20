@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import enums.Enums.commandType;
 import enums.Enums.getCommand;
@@ -42,6 +45,9 @@ public class SimplifiedClient implements AutoCloseable {
     private DataOutputStream out;
     private String commandFilePath;
     private long lastReadPosition = 0;
+    private int pendingReplies = 0;
+    private Lock lock = new ReentrantLock();
+    private Condition waitReplys = lock.newCondition();
     private Scanner scanner = new Scanner(System.in);
 
     private final int BufferSize = 15;
@@ -269,7 +275,14 @@ public class SimplifiedClient implements AutoCloseable {
     }
   
     private void exitLogout() throws Exception {
-        Thread.sleep(500);
+        lock.lock();
+        try {
+            while(pendingReplies > 0){
+                waitReplys.await();
+            }
+        } finally {
+            lock.unlock();
+        }
         CliToServMsg exitMsg = new ExitMsg();
         sendBuffer.push(exitMsg);
         System.out.println("Exiting client");
@@ -282,6 +295,12 @@ public class SimplifiedClient implements AutoCloseable {
         try {
             while (!turnOff) {
                 CliToServMsg msg = sendBuffer.pop();
+                lock.lock();
+                try{
+                    pendingReplies++;
+                } finally {
+                    lock.unlock();
+                }
                 msg.serialize(out);
                 out.flush();
             }
@@ -290,7 +309,7 @@ public class SimplifiedClient implements AutoCloseable {
         }
     }
 
-     private void receiveMessage(DataInputStream in) throws IOException {
+    private void receiveMessage(DataInputStream in) throws IOException {
         SavedResponse newResponse = null;
         try {
             while (!turnOff) {
@@ -408,23 +427,20 @@ public class SimplifiedClient implements AutoCloseable {
                 if (newResponse != null) {
                     arrivedReplys.addLast(newResponse);
                 }
-                
+
+                lock.lock();
+                try{
+                    pendingReplies--;
+                    if(pendingReplies == 0){
+                        waitReplys.signal();
+                    }
+                } finally {
+                    lock.unlock();
+                }
             }
         } catch (IOException e) {
             if (newResponse == null) {
                 return;
-            }
-        }
-    }
-
-    private void PrintSavedReplys() {
-        if (arrivedReplys.isEmpty()) {
-            System.out.println("Ainda não chegou nenhuma resposta aos pedidos realizados.");
-        } else {
-            System.out.println("");
-            System.out.println("Comando | Data de Pedido | Data de Chegada |    Chave(s)   |    Data");
-            for (SavedResponse response : arrivedReplys) {
-                System.out.println(response.toString());
             }
         }
     }
