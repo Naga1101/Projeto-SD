@@ -269,6 +269,7 @@ public class SimplifiedClient implements AutoCloseable {
     }
   
     private void exitLogout() throws Exception {
+        Thread.sleep(500);
         CliToServMsg exitMsg = new ExitMsg();
         sendBuffer.push(exitMsg);
         System.out.println("Exiting client");
@@ -441,7 +442,29 @@ public class SimplifiedClient implements AutoCloseable {
     }
 
     public static void main(String[] args) throws Exception {
-        SimplifiedClient client = new SimplifiedClient();
-        client.startClient("/home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/clientsCommands/client1.txt");
+        String client1Path = "/home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/clientsCommands/client1.txt"; 
+        String client2Path = "/home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/clientsCommands/client2.txt"; 
+        
+        Thread client1Thread = new Thread(() -> { 
+            try { 
+                try (SimplifiedClient client1 = new SimplifiedClient()) {
+                    client1.startClient(client1Path);
+                } 
+            } catch (Exception e) { 
+                e.printStackTrace(); 
+            } 
+        }); 
+        Thread client2Thread = new Thread(() -> { 
+            try { 
+                try (SimplifiedClient client2 = new SimplifiedClient()) {
+                    client2.startClient(client2Path);
+                } 
+            } catch (Exception e) { 
+                e.printStackTrace(); 
+            } 
+        }); 
+
+        client1Thread.start(); 
+        client2Thread.start(); 
     }
 }

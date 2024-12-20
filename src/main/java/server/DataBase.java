@@ -125,12 +125,16 @@ public class DataBase implements DBInterface.DB {
 
             data = dataBase.get(key);
 
+            String dataS;
             if(data != null) {
-                String dataS = new String(data, StandardCharsets.UTF_8);
-                message = timestamp + " | Get result from batch " + " | ID: " + key + " | value: " + dataS;
-                sessionFile.log(message);
+                dataS = new String(data, StandardCharsets.UTF_8);
+            } else {
+                dataS = "null";
+                data = dataS.getBytes();
             }
 
+            message = timestamp + " | Get result from batch " + " | ID: " + key + " | value: " + dataS;
+            sessionFile.log(message);
         } finally {
             lockDataBase.unlock();
         }
@@ -173,10 +177,13 @@ public class DataBase implements DBInterface.DB {
         } finally {
             lockDataBase.unlock();
         }
-        for (String key : keys) {
+        for (String key : keys) {            
             String message = timestamp + " | MultiGet " + " | Key: " + " | ID: " + key ;
             sessionFile.log(message);
-            resultMap.put(key, dataBaseCopy.get(key));
+
+            byte[] data = dataBaseCopy.get(key);
+            if(data == null) data = "null".getBytes();
+            resultMap.put(key, data);
         }
 
         return resultMap;

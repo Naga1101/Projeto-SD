@@ -1,6 +1,5 @@
 package utils;
 
-import java.io.Closeable;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -22,7 +21,7 @@ public class BoundedBuffer<T> {
  	}
 
  	public void push(T item) throws InterruptedException {
-		 System.out.println("Push do item: " + item);
+		// System.out.println("Push do item: " + item);
 		lock.lock();
  		try {
  			while (size >= arr.length) { // full

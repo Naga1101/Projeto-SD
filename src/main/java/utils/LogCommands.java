@@ -121,7 +121,6 @@ public class LogCommands {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(commandLogFile, true))) {
             writer.write("Hora de Pedido: " + timestamp + "| comando: " + comando + " | chave: " + key + " | data: " + data);
             writer.newLine();
-            System.out.println("Logged reply for command: " + comando + " for user: " + user);
         } catch (IOException e) {
             System.err.println("Failed to write reply to command log: " + e.getMessage());
         }

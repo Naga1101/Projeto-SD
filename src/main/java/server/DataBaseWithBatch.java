@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DataBaseWithBatch implements DBInterface.DB {
@@ -159,6 +158,7 @@ public class DataBaseWithBatch implements DBInterface.DB {
             lockBatch.unlock();
         }
 
+        if(data == null) data = "null".getBytes();
         return data;
     }
 
@@ -199,8 +199,8 @@ public class DataBaseWithBatch implements DBInterface.DB {
         if (data != null) {
             dataS = new String(data, StandardCharsets.UTF_8);
         } else {
-            dataS = null;
-            System.err.println("Warning: Attempted to create a String from a null byte array.");
+            dataS = "null";
+            data = dataS.getBytes();
         }
         String message = timestamp + " | Get result from main " + " | ID: " + key + " | value: " + dataS;
         sessionFile.log(message);
@@ -246,14 +246,14 @@ public class DataBaseWithBatch implements DBInterface.DB {
             sessionFile.log(message);
             byte[] data = batchCopy.get(key);
             data = data != null ? data : dataBaseCopy.get(key);
-            resultMap.put(key, data);
             String dataS;
             if (data != null) {
                 dataS = new String(data, StandardCharsets.UTF_8);
             } else {
-                dataS = null;
-                System.err.println("Warning: Attempted to create a String from a null byte array.");
+                dataS = "null";
+                data = dataS.getBytes();
             }
+            resultMap.put(key, data);
             message = timestamp + " | MultiGet result: " + " | ID: " + key + " - data: " + dataS;
             sessionFile.log(message);
         }        

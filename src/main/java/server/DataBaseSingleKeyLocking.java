@@ -152,10 +152,14 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
             sessionFile.log(timestamp + " | Get " + " | ID: " + key);
     
             byte[] data = entry.getData();
+            String dataS;
             if (data != null) {
-                String dataS = new String(data, StandardCharsets.UTF_8);
-                sessionFile.log(timestamp + " | Get result " + " | value: " + dataS);
+                dataS = new String(data, StandardCharsets.UTF_8);
+            } else {
+                dataS = "null";
+                data = dataS.getBytes();
             }
+            sessionFile.log(timestamp + " | Get result " + " | value: " + dataS);
             return data;
         } finally {
             entryLock.unlock();
@@ -190,11 +194,11 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
 
             for (String key : keys) {
                 DataEntry entry = dataBase.get(key);
-                byte[] value = entry != null ? entry.getData() : null;
+                byte[] value = entry != null ? entry.getData() : "null".getBytes();
                 resultMap.put(key, value);
 
                 sessionFile.log(timestamp + " | MultiGet " + " | Key: " + key + " | Value: " +
-                    (value != null ? new String(value, StandardCharsets.UTF_8) : "null"));
+                    (new String(value, StandardCharsets.UTF_8)));
             }
 
             logAllDataMain();

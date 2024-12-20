@@ -5,6 +5,7 @@ import utils.BoundedBuffer;
 
 public class Worker implements Runnable {
     private final int cap;
+    private String nome;
     private WorkerStatus status;
     private BoundedBuffer<ScheduledTask> tasks;
     private ExecuteTask executor = new ExecuteTask();
@@ -28,6 +29,10 @@ public class Worker implements Runnable {
         return this.tasks.size();
     }
 
+    public String getNome(){
+        return nome;
+    }
+
     public void setStatus(int newTask) {
         int currentAmount = getTaskCount() + newTask;
         if (currentAmount == 0) {
@@ -41,11 +46,12 @@ public class Worker implements Runnable {
 
     @Override
     public void run(){
-        System.out.println("Worker with name: " + Thread.currentThread().getName());
+        nome = Thread.currentThread().getName();
+        System.out.println("Worker with name: " + nome);
         try{
             while(true){
                 ScheduledTask task = tasks.pop();
-
+                //Thread.sleep(100);
                 //System.out.println(Thread.currentThread().getName() + " têm estado antes do set: " + getStatus() + " está a executar a tarefa");
                 if(getTaskCount() == 0) setStatus(0);
                 //System.out.println(Thread.currentThread().getName() + " têm estado depois do set: " + getStatus() + " está a executar a tarefa");

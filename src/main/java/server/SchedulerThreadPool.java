@@ -1,9 +1,10 @@
 package server;
 
-import enums.Enums.WorkerStatus;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+
+import enums.Enums.WorkerStatus;
 import static server.Server.unscheduledTaks;
 
 public class SchedulerThreadPool {
@@ -86,6 +87,7 @@ public class SchedulerThreadPool {
 
                     if(bestWorker != null){
                         try{
+                            System.out.println("O worker é " + bestWorker.getNome());
                             bestWorker.setStatus(1);
                             bestWorker.getTasks().push(task);
                         } catch(Exception e){
