@@ -1,0 +1,14 @@
+REGISTER conde lipa
+LOGIN conde lipa
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file1.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file12.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file13.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file4.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file5.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file6.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file11.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file8.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file15.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file14.txt
+EXIT

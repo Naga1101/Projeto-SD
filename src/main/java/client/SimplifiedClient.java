@@ -458,8 +458,8 @@ public class SimplifiedClient implements AutoCloseable {
     }
 
     public static void main(String[] args) throws Exception {
-        String client1Path = "/home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/clientsCommands/client1.txt"; 
-        String client2Path = "/home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/clientsCommands/client2.txt"; 
+        String client1Path = "C:\\Users\\Nuno Aguiar\\Documents\\GitHub\\Projeto-SD\\src\\test\\files\\clientsCommands\\client8.txt";
+        String client2Path = "C:\\Users\\Nuno Aguiar\\Documents\\GitHub\\Projeto-SD\\src\\test\\files\\clientsCommands\\client14.txt";
         
         Thread client1Thread = new Thread(() -> { 
             try { 

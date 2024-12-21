@@ -1,0 +1,14 @@
+REGISTER conde azevedo
+LOGIN conde azevedo
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file1.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file2.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file3.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file4.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file5.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file6.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file11.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file12.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file1.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file7.txt
+MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file9.txt
+EXIT

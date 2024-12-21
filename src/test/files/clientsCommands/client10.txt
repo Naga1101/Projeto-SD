@@ -1,0 +1,11 @@
+REGISTER nuno aguiar
+LOGIN nuno aguiar
+MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget9.txt
+MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget10.txt
+MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget11.txt
+MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget12.txt
+MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget13.txt
+MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget14.txt
+MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget15.txt
+MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget8.txt
+EXIT
