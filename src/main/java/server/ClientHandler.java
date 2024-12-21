@@ -7,6 +7,7 @@ import enums.Enums.getCommand;
 import enums.Enums.putCommand;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import messagesFormat.*;
@@ -21,12 +22,25 @@ public class ClientHandler implements Runnable, AutoCloseable {
     private DataOutputStream out;
     private UsersAuthenticator usersAuthenticator;
     private Timer activeTimer;
-    private static Runnable onTimeout = () -> System.out.println("Inactive for to long!!");
     private String user = "";
     private static LogCommands commandLogs ;
     private final int BufferSize = 15;
     private BoundedBuffer<EncapsulatedMsg> inputBuffer;
     private BoundedBuffer<IMessage> outputBuffer;
+    private boolean timedOut = false;
+    
+    private Runnable onTimeout = () -> {
+        System.out.println("Inactive for to long!!");
+        TimeoutMsg msg = new TimeoutMsg();
+        try {
+            timedOut = true;
+            msg.serialize(out);
+            out.flush();
+            clientSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    };
 
     public ClientHandler(Socket socket, UsersAuthenticator usersAuthenticator, LogCommands commandLogs ) {
         this.clientSocket = socket;
@@ -122,8 +136,7 @@ public class ClientHandler implements Runnable, AutoCloseable {
                 out.flush();
             }
         } catch (IOException e) {
-            e.printStackTrace();
-            Server.clientDisconnected();
+            if(!timedOut) Server.clientDisconnected();
             return false; // Assume login failed on error
         }
         return loggedIn;
@@ -238,8 +251,7 @@ public class ClientHandler implements Runnable, AutoCloseable {
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
-            Server.clientDisconnected();
+            System.out.println("Client was disconnected by timeout.");
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

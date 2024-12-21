@@ -54,14 +54,13 @@ public class Client implements AutoCloseable {
     }
 
     private void startClient(){
+        boolean loggedIn = false;
         try {
             socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
-
             while(!turnOff){
-                boolean loggedIn = clientLogin(out, in);
-            
+                loggedIn = clientLogin(out, in);
                 if(loggedIn){
                     Thread sendThread = new Thread(() -> sendMessage(out));
                     Thread receiveThread = new Thread(() -> {
@@ -78,16 +77,16 @@ public class Client implements AutoCloseable {
                     authenticatedClient();
 
                     turnOff = true;
-
-                    sendThread.join();
-                    receiveThread.join();
                 }
             }
 
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         } finally {
-            close();
+            if(loggedIn) {
+                System.out.println("Cliente desconectado com sucesso!");
+                close();
+            }
         }
     }
 
@@ -153,7 +152,8 @@ public class Client implements AutoCloseable {
                 if(!turnOff) menus.printReply(reply, name);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Login took too long!");
+            close();
         }
 
         return loggedIn;
@@ -432,7 +432,12 @@ public class Client implements AutoCloseable {
                                 break;
                         }
                         break;
-    
+
+                    case TIMEOUT:
+                        System.out.println("Client marked as inactive. Disconnecting...");
+                        turnOff = true;
+                        break;
+
                     default:
                         System.out.println("Unhandled opcode: " + opcode);
                         break;
@@ -449,6 +454,7 @@ public class Client implements AutoCloseable {
                 }
             }
         }
+        close();
     }
 
 
@@ -471,10 +477,10 @@ public class Client implements AutoCloseable {
             if (in != null) in.close();
             if (out != null) out.close();
             if (socket != null) socket.close();
+            scanner.nextLine();
             scanner.close();
-            System.out.println("Cliente desconectou-se com sucesso!");
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.exit(0);
         }
     }
 }

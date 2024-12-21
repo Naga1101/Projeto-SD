@@ -56,7 +56,8 @@ public class Enums{
     public enum commandType {
         GET(0),
         PUT(1),
-        EXIT(2);
+        EXIT(2),
+        TIMEOUT(3);
 
         private final int code;
 
