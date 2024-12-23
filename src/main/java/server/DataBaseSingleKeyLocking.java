@@ -3,8 +3,11 @@ package server;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Condition;
@@ -75,6 +78,7 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
     @Override
     public void multiPut(Map<String, byte[]> pairs) {
         Map<String, Lock> entryLocks = new HashMap<>();
+        List<String> sortedKeys = new ArrayList<>();
 
         lockDataBase.lock();
         try {
@@ -87,8 +91,11 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
                 entryLocks.put(key, entry.getLock());
             }
 
-            for (Lock lock : entryLocks.values()) {
-                lock.lock();
+            sortedKeys = new ArrayList<>(entryLocks.keySet());
+            Collections.sort(sortedKeys);
+
+            for (String key : sortedKeys) {
+                entryLocks.get(key).lock();
             }
         } finally {
             lockDataBase.unlock();
@@ -123,8 +130,8 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
 
             logAllDataMain();
         } finally {
-            for (Lock lock : entryLocks.values()) {
-                lock.unlock();
+            for (String key : sortedKeys) {
+                entryLocks.get(key).unlock();
             }
         }
     }
@@ -170,6 +177,7 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
     public Map<String, byte[]> multiGetLockAll(Set<String> keys) {
         Map<String, byte[]> resultMap = new HashMap<>();
         Map<String, Lock> entryLocks = new HashMap<>();
+        List<String> sortedKeys = new ArrayList<>();
 
         lockDataBase.lock();
         try {
@@ -180,8 +188,11 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
                 }
             }
 
-            for (Lock lock : entryLocks.values()) {
-                lock.lock();
+            sortedKeys = new ArrayList<>(entryLocks.keySet());
+            Collections.sort(sortedKeys);
+
+            for (String key : sortedKeys) {
+                entryLocks.get(key).lock();
             }
         } finally {
             lockDataBase.unlock();
@@ -203,8 +214,8 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
 
             logAllDataMain();
         } finally {
-            for (Lock lock : entryLocks.values()) {
-                lock.unlock();
+            for (String key : sortedKeys) {
+                entryLocks.get(key).unlock();
             }
         }
 
@@ -216,7 +227,8 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
     public Map<String, byte[]> multiGet(Set<String> keys) {
         Map<String, byte[]> resultMap = new HashMap<>();
         Map<String, DataEntry> entryMap = new HashMap<>();
-
+        List<String> sortedKeys = new ArrayList<>();
+        
         lockDataBase.lock();
         try {
             for (String key : keys) {
@@ -225,31 +237,41 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
                     entryMap.put(key, entry);
                 }
             }
+        
+            sortedKeys = new ArrayList<>(entryMap.keySet());
+            Collections.sort(sortedKeys);
         } finally {
             lockDataBase.unlock();
         }
+        
+        List<Lock> acquiredLocks = new ArrayList<>();
+        try {
+            for (String key : sortedKeys) {
+                Lock entryLock = entryMap.get(key).getLock();
+                entryLock.lock();
+                acquiredLocks.add(entryLock);
+            }
 
-        for (Map.Entry<String, DataEntry> pair : entryMap.entrySet()) {
-            String key = pair.getKey();
-            DataEntry entry = pair.getValue();
-
-            Lock entryLock = entry.getLock();
-            entryLock.lock();
-            try {
-                String timestamp = getCurrentTimestamp();
+            String timestamp = getCurrentTimestamp();
+            for (String key : sortedKeys) {
+                DataEntry entry = entryMap.get(key);
+        
                 sessionFile.log(timestamp + " | MultiGet " + " | Key: " + key);
-
+        
                 byte[] value = entry.getData();
                 resultMap.put(key, value);
-
+        
                 sessionFile.log(timestamp + " | MultiGet result " + " | Value: " +
                     (value != null ? new String(value, StandardCharsets.UTF_8) : "null"));
-            } finally {
-                entryLock.unlock();
+            }
+        
+            logAllDataMain();
+        } finally {
+            for (Lock lock : acquiredLocks) {
+                lock.unlock();
             }
         }
-
-        logAllDataMain();
+        
         return resultMap;
     }
 
@@ -259,39 +281,54 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
         if (result != null) {
             return result;
         }
-
-        CondKey newCond = new CondKey(valueCond,lockWaitingCond);
+    
+        CondKey newCond = new CondKey(valueCond, lockWaitingCond);
+    
         lockWaitingCond.lock();
         try {
-            waitingCond.put(keyCond, newCond);
-
+            if (!waitingCond.containsKey(keyCond)) {
+                waitingCond.put(keyCond, newCond);
+            }
+    
             while (!newCond.isMet()) {
                 conditionMet.await();
             }
-
+    
             logAllDataMain();
             return verifyIfCondAlreadyMet(key, keyCond, valueCond);
         } finally {
-            waitingCond.remove(keyCond);
+            if (waitingCond.get(keyCond) == newCond) {
+                waitingCond.remove(keyCond);
+            }
             lockWaitingCond.unlock();
         }
     }
 
     private byte[] verifyIfCondAlreadyMet(String key, String keyCond, byte[] valueCond) {
-        Lock condLock = dataBase.get(keyCond).getLock();
-        Lock keyLock = dataBase.get(key).getLock();
-
-        condLock.lock();
-        keyLock.lock();
+        String firstKey = key.compareTo(keyCond) <= 0 ? key : keyCond;
+        String secondKey = key.compareTo(keyCond) > 0 ? key : keyCond;
+    
+        Lock firstLock = dataBase.get(firstKey).getLock();
+        Lock secondLock = dataBase.get(secondKey).getLock();
+    
+        firstLock.lock();
+        secondLock.lock();
         try {
-            byte[] currentCondValue = dataBase.get(keyCond).getData();
+            DataEntry condEntry = dataBase.get(keyCond);
+            DataEntry keyEntry = dataBase.get(key);
+    
+            if (condEntry == null || keyEntry == null) {
+                return null;
+            }
+    
+            byte[] currentCondValue = condEntry.getData();
             if (currentCondValue != null && Arrays.equals(currentCondValue, valueCond)) {
-                return dataBase.get(key).getData();
+                return keyEntry.getData();
             }
             return null;
         } finally {
-            keyLock.unlock();
-            condLock.unlock();
+            secondLock.unlock();
+            firstLock.unlock();
         }
     }
 
