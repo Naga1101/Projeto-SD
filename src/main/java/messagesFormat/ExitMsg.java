@@ -20,7 +20,7 @@ public class ExitMsg implements CliToServMsg {
 
     @Override
     public byte getSubcode() {
-        return 0;
+        return -1;
     }
 
     @Override

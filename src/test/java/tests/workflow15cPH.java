@@ -3,42 +3,42 @@ package tests;
 import java.util.ArrayList;
 import java.util.List;
 
-public class workflow15cMPH {
+public class workflow15cPH {
     private final static String baseDir = System.getProperty("user.dir");
 
     public static void main(String[] args) throws Exception {
         String[] multiputPaths = {
-            baseDir + "/test/files/clientsCommands/multiPut/client1.txt",
-            baseDir + "/test/files/clientsCommands/multiPut/client2.txt",
-            baseDir + "/test/files/clientsCommands/multiPut/client3.txt",
-            baseDir + "/test/files/clientsCommands/multiPut/client4.txt",
-            baseDir + "/test/files/clientsCommands/multiPut/client5.txt",
             baseDir + "/test/files/clientsCommands/multiPut/client6.txt",
-            baseDir + "/test/files/clientsCommands/multiPut/client7.txt",
-            baseDir + "/test/files/clientsCommands/multiPut/client8.txt",
-            baseDir + "/test/files/clientsCommands/multiPut/client9.txt",
-            baseDir + "/test/files/clientsCommands/multiPut/client10.txt"
+            baseDir + "/test/files/clientsCommands/multiPut/client9.txt"
         };
 
         String[] multigetPaths = {
             baseDir + "/test/files/clientsCommands/multiGet/client5.txt",
-            baseDir + "/test/files/clientsCommands/multiGet/client8.txt"
+            baseDir + "/test/files/clientsCommands/multiGet/client10.txt"
         };
 
         String[]getEputPaths = {
+            baseDir + "/test/files/clientsCommands/put/client1.txt",
+            baseDir + "/test/files/clientsCommands/put/client2.txt",
+            baseDir + "/test/files/clientsCommands/put/client3.txt",
+            baseDir + "/test/files/clientsCommands/put/client4.txt",
             baseDir + "/test/files/clientsCommands/put/client5.txt",
-            baseDir + "/test/files/clientsCommands/get/client5.txt"
+            baseDir + "/test/files/clientsCommands/put/client6.txt",
+            baseDir + "/test/files/clientsCommands/put/client7.txt",
+            baseDir + "/test/files/clientsCommands/put/client8.txt",
+            baseDir + "/test/files/clientsCommands/put/client9.txt",
+            baseDir + "/test/files/clientsCommands/put/client10.txt"
         };
 
-        String mixedPath = baseDir + "/test/files/clientsCommands/mixedCommands/client1.txt";
+        String mixedPath = baseDir + "/test/files/clientsCommands/mixedCommands/client3.txt";
 
         List<testClient> tasks = new ArrayList<>();
 
-        for (String path : multiputPaths) {
+        for (String path : multigetPaths) {
             tasks.add(new testClient(path));
         }
 
-        for (String path : multigetPaths) {
+        for (String path : multiputPaths) {
             tasks.add(new testClient(path));
         }
 

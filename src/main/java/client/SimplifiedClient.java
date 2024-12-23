@@ -9,7 +9,6 @@ import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -38,7 +37,7 @@ import utils.BoundedBuffer;
 public class SimplifiedClient implements AutoCloseable {
     private static final String SERVER_ADDRESS = "localhost";
     private static final int SERVER_PORT = 12345;
-    private boolean turnOff = false;
+    private volatile boolean turnOff = false;
     private ClientMenus menus = new ClientMenus();
     private Socket socket;
     private DataInputStream in;
@@ -46,9 +45,9 @@ public class SimplifiedClient implements AutoCloseable {
     private String commandFilePath;
     private long lastReadPosition = 0;
     private int pendingReplies = 0;
+    private boolean desconectado = false;
     private Lock lock = new ReentrantLock();
     private Condition waitReplys = lock.newCondition();
-    private Scanner scanner = new Scanner(System.in);
 
     private final int BufferSize = 15;
     private BoundedBuffer<CliToServMsg> sendBuffer = new BoundedBuffer<>(BufferSize);
@@ -63,6 +62,14 @@ public class SimplifiedClient implements AutoCloseable {
                 in = new DataInputStream(socket.getInputStream());
                 out = new DataOutputStream(socket.getOutputStream());
                 commandFilePath = clientFilePath;
+
+                lock.lock();
+                try {
+                    pendingReplies = calculatePendingReplies(commandFilePath, lastReadPosition);
+                    System.out.println("Initial pending replies count: " + pendingReplies);
+                } finally {
+                    lock.unlock();
+                }
     
                 try (RandomAccessFile fileReader = new RandomAccessFile(commandFilePath, "r")) {
                     fileReader.seek(lastReadPosition);
@@ -169,7 +176,11 @@ public class SimplifiedClient implements AutoCloseable {
                     while ((command = fileReader.readLine()) != null && !turnOff) {
                         lastReadPosition = fileReader.getFilePointer();
                         executeCommand(command.trim());
-                        Thread.sleep(100);
+                        Thread.sleep(50);
+                        if(turnOff) {
+                            System.out.print("o " + username + " já recebeu todos os pedidos " + turnOff);    
+                            break;
+                        }
                     }
                 }
     
@@ -181,62 +192,62 @@ public class SimplifiedClient implements AutoCloseable {
         } 
     
         private void executeCommand(String command) throws Exception { 
-        String[] parts = command.split(" ", 2);
-        String action = parts[0];
-    
-        System.out.println(action + " " + (parts.length > 1 ? parts[1] : ""));
-    
-        switch (action.toUpperCase()) { 
-            case "PUT": 
-            if (parts.length > 1) {
-                String[] putParts = parts[1].split(" ", 2);
-                if (putParts.length == 2) {
-                    put(putParts[0], putParts[1]);
+            String[] parts = command.split(" ", 2);
+            String action = parts[0];
+        
+            System.out.println(action + " " + (parts.length > 1 ? parts[1] : ""));
+        
+            switch (action.toUpperCase()) { 
+                case "PUT": 
+                if (parts.length > 1) {
+                    String[] putParts = parts[1].split(" ", 2);
+                    if (putParts.length == 2) {
+                        put(putParts[0], putParts[1]);
+                    } else {
+                        System.out.println("Missing arguments for PUT command.");
+                    }
                 } else {
                     System.out.println("Missing arguments for PUT command.");
                 }
-            } else {
-                System.out.println("Missing arguments for PUT command.");
-            }
-            break; 
-            case "MULTIPUT": 
-            if (parts.length > 1) {
-                multiPut(parts[1]); 
-            } else {
-                System.out.println("Missing argument for MULTIPUT command.");
-            }
-            break; 
-            case "GET": 
+                break; 
+                case "MULTIPUT": 
                 if (parts.length > 1) {
-                    get(parts[1]); 
+                    multiPut(parts[1]); 
                 } else {
-                    System.out.println("Missing argument for GET command.");
+                    System.out.println("Missing argument for MULTIPUT command.");
                 }
                 break; 
-            case "MULTIGET":
-                if (parts.length > 1) {
-                    multiGet(parts[1]);
-                } else {
-                    System.out.println("Missing argument for MULTIGET command.");
-                }
-                break;
-            case "GETWHEN":
-                if (parts.length > 1) {
-                    String[] getWhenParts = parts[1].split(" ", 3);
-                    if (getWhenParts.length == 3) {
-                        getWhen(getWhenParts[0], getWhenParts[1], getWhenParts[2]);
+                case "GET": 
+                    if (parts.length > 1) {
+                        get(parts[1]); 
                     } else {
-                        System.out.println("Missing arguments for GETWHEN command.");
+                        System.out.println("Missing argument for GET command.");
                     }
-                } else {
-                    System.out.println("Missing argument for GETWHEN command.");
-                }
-                break;
-            case "EXIT": 
-                exitLogout(); 
-                break; 
-            default: 
-                System.out.println("Unknown command: " + command); 
+                    break; 
+                case "MULTIGET":
+                    if (parts.length > 1) {
+                        multiGet(parts[1]);
+                    } else {
+                        System.out.println("Missing argument for MULTIGET command.");
+                    }
+                    break;
+                case "GETWHEN":
+                    if (parts.length > 1) {
+                        String[] getWhenParts = parts[1].split(" ", 3);
+                        if (getWhenParts.length == 3) {
+                            getWhen(getWhenParts[0], getWhenParts[1], getWhenParts[2]);
+                        } else {
+                            System.out.println("Missing arguments for GETWHEN command.");
+                        }
+                    } else {
+                        System.out.println("Missing argument for GETWHEN command.");
+                    }
+                    break;
+                case "EXIT": 
+                    exitLogout(); 
+                    break; 
+                default: 
+                    System.out.println("Unknown command: " + command); 
             }
         }
     
@@ -280,6 +291,7 @@ public class SimplifiedClient implements AutoCloseable {
             lock.lock();
             try {
                 while(pendingReplies > 0){
+                    System.out.println(username + " a aguardar pelas " + pendingReplies + " que faltam.");
                     waitReplys.await();
                 }
             } finally {
@@ -287,7 +299,7 @@ public class SimplifiedClient implements AutoCloseable {
             }
             CliToServMsg exitMsg = new ExitMsg();
             sendBuffer.push(exitMsg);
-            System.out.println("Exiting client");
+            System.out.println("Exiting " + username);
             turnOff = true;
         }
     
@@ -297,17 +309,14 @@ public class SimplifiedClient implements AutoCloseable {
             try {
                 while (!turnOff) {
                     CliToServMsg msg = sendBuffer.pop();
-                    lock.lock();
-                    try{
-                        pendingReplies++;
-                    } finally {
-                        lock.unlock();
-                    }
                     msg.serialize(out);
                     out.flush();
+                    if(msg.getSubcode() == -1) break;
                 }
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
+            } finally {
+                System.out.println("Send thread do " + username + " exiting.");
             }
         }
     
@@ -315,6 +324,7 @@ public class SimplifiedClient implements AutoCloseable {
             SavedResponse newResponse = null;
             try {
                 while (!turnOff) {
+                    if (in.available() == 0 && turnOff) break;
                     byte opcodeByte = in.readByte();
                     long arrivedTime = Instant.now().toEpochMilli();
         
@@ -433,7 +443,9 @@ public class SimplifiedClient implements AutoCloseable {
                     lock.lock();
                     try{
                         pendingReplies--;
+                        System.out.println(username + " chegou uma reply " + pendingReplies + ".");
                         if(pendingReplies == 0){
+                            System.out.println(username + " chegou tudo vou avisar, " + pendingReplies + ".");
                             waitReplys.signal();
                         }
                     } finally {
@@ -444,48 +456,51 @@ public class SimplifiedClient implements AutoCloseable {
                 if (newResponse == null) {
                     return;
                 }
+            } finally {
+                System.out.println("Recieve thread do " + username + " exiting.");
             }
         }
     
+        // conta o numero de comandos que o cliente vai fazer
+
+        private int calculatePendingReplies(String filePath, long startPosition) throws IOException {
+            int replyCount = 0;
+            try (RandomAccessFile fileReader = new RandomAccessFile(filePath, "r")) {
+                fileReader.seek(0); 
+                String line;
+                while ((line = fileReader.readLine()) != null) {
+                    line = line.trim();
+                    if (line.equalsIgnoreCase("EXIT")) {
+                        break; 
+                    }
+                    String action = line.split(" ")[0].toUpperCase();
+                    switch (action) {
+                        case "PUT":
+                        case "MULTIPUT":
+                        case "GET":
+                        case "MULTIGET":
+                        case "GETWHEN":
+                            replyCount++;
+                            break;
+                        default:
+                    }
+                }
+            }
+            return replyCount;
+        }
+        
         @Override
         public void close() throws Exception {
             try {
                 if (in != null) in.close();
                 if (out != null) out.close();
                 if (socket != null) socket.close();
-                System.out.println("Cliente desconectou-se com sucesso!");
+                if(!desconectado){
+                    desconectado = true;
+                    System.out.println("Cliente " + username + " desconectou-se com sucesso!");
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-    
-        public static void main(String[] args) throws Exception {
-            //String client1Path = "C:\Users\Nuno Aguiar\Documents\GitHub\Projeto-SD\src\test\files\clientsCommands\client8.txt";
-            //String client2Path = "C:\Users\Nuno Aguiar\Documents\GitHub\Projeto-SD\src\test\files\clientsCommands\client14.txt";
-        String client1Path = baseDir + "/test/files/clientsCommands/mixedCommands/client7.txt";
-        String client2Path = baseDir + "/test/files/clientsCommands/mixedCommands/client10.txt";
-
-        
-        Thread client1Thread = new Thread(() -> { 
-            try { 
-                try (SimplifiedClient client1 = new SimplifiedClient()) {
-                    client1.startClient(client1Path);
-                } 
-            } catch (Exception e) { 
-                e.printStackTrace(); 
-            } 
-        }); 
-        Thread client2Thread = new Thread(() -> { 
-            try { 
-                try (SimplifiedClient client2 = new SimplifiedClient()) {
-                    client2.startClient(client2Path);
-                } 
-            } catch (Exception e) { 
-                e.printStackTrace(); 
-            } 
-        }); 
-
-        client1Thread.start(); 
-        client2Thread.start(); 
-    }
 }

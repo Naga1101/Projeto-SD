@@ -40,7 +40,7 @@ public class Timer {
 
             } catch (InterruptedException e) {
                 if (!isStopped) {
-                    System.out.println("User is active!");
+                    //System.out.println("User is active!");
                 }
             }
         });

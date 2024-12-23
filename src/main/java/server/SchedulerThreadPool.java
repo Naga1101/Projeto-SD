@@ -87,7 +87,7 @@ public class SchedulerThreadPool {
 
                     if(bestWorker != null){
                         try{
-                            System.out.println("O worker é " + bestWorker.getNome());
+                            System.out.println("O worker é " + bestWorker.getNome() + " com status " + bestWorker.getStatus());
                             bestWorker.setStatus(1);
                             bestWorker.getTasks().push(task);
                         } catch(Exception e){

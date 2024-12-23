@@ -1,12 +1,22 @@
 package server;
 
+import java.util.Map;
+import java.util.Set;
+
 import enums.Enums.commandType;
 import enums.Enums.getCommand;
 import enums.Enums.putCommand;
-import java.util.Map;
-import java.util.Set;
-import messagesFormat.*;
+import messagesFormat.GetMsg;
+import messagesFormat.GetReply;
+import messagesFormat.GetWhenMsg;
+import messagesFormat.GetWhenReply;
 import messagesFormat.MsgInterfaces.IMessage;
+import messagesFormat.MultiGetMsg;
+import messagesFormat.MultiGetReply;
+import messagesFormat.MultiPutMsg;
+import messagesFormat.MultiPutReply;
+import messagesFormat.PutMsg;
+import messagesFormat.PutReply;
 
 
 public class ExecuteTask {
@@ -39,7 +49,7 @@ public class ExecuteTask {
 
                             reply = new GetReply(key, arrivalTimestamp, data);
 
-                            System.out.println(reply);
+                            ////System.out.println(reply);
                         } else {
                             throw new IllegalStateException("Invalid message type for GET operation");
                         }
@@ -54,7 +64,7 @@ public class ExecuteTask {
 
                             reply = new MultiGetReply(arrivalTimestamp, dataReply);
 
-                            System.out.println(reply);
+                            //System.out.println(reply);
                         } else {
                             throw new IllegalStateException("Invalid message type for GET operation");
                         }
@@ -72,8 +82,8 @@ public class ExecuteTask {
                             reply = new GetWhenReply(arrivalTimestamp, key, data);
                             
 
-                            System.out.println("Getwhen successfully");
-                            System.out.println(reply);
+                            //System.out.println("Getwhen successfully");
+                            //System.out.println(reply);
                         } else {
                             throw new IllegalStateException("Invalid message type for GET operation");
                         }
@@ -94,7 +104,7 @@ public class ExecuteTask {
 
                             reply = new PutReply(key, arrivalTimestamp);
 
-                            System.out.println(reply);
+                            //System.out.println(reply);
                         } else {
                             throw new IllegalStateException("Invalid message type for GET operation");
                         }
@@ -109,7 +119,7 @@ public class ExecuteTask {
 
                             reply = new MultiPutReply(arrivalTimestamp);
 
-                            System.out.println(reply);
+                            //System.out.println(reply);
                         } else {
                             throw new IllegalStateException("Invalid message type for GET operation");
                         }

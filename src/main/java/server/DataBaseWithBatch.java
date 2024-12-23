@@ -44,7 +44,6 @@ public class DataBaseWithBatch implements DBInterface.DB {
     // puts na batch e caso necessário chamam o flush
     @Override
     public void put(String key, byte[] data){
-        System.out.println("Estou a dar put a " + key);
         batchFlushTimer.resetTimer();
 
         String timestamp;
@@ -71,11 +70,11 @@ public class DataBaseWithBatch implements DBInterface.DB {
             if(!waitingCond.isEmpty()){
                 lockWaitingCond.lock();
                 try {
-                    System.out.println("Verificar se existe alguem à espera");
+                    //System.out.println("Verificar se existe alguem à espera");
                     CondKey cond = waitingCond.get(key);
-                    System.out.println("Cond key: " + cond);
+                    //System.out.println("Cond key: " + cond);
                     if (cond != null && Arrays.equals(data, cond.getData())) {
-                        System.out.println("Cond: " + cond + " " + data);
+                        //System.out.println("Cond: " + cond + " " + data);
                         cond.setMet();
                         cond.getCondition().signal();
                     }
@@ -263,9 +262,9 @@ public class DataBaseWithBatch implements DBInterface.DB {
 
     @Override
     public byte[] getWhen(String key, String keyCond, byte[] valueCond) throws InterruptedException {
-        System.out.println("GetWhen");
+        //System.out.println("GetWhen");
         byte[] wantedData = verifyIfCondAlreadyMet(key, keyCond, valueCond);
-        System.out.println("Wanted data: " + wantedData);
+        //System.out.println("Wanted data: " + wantedData);
         if(wantedData != null) return wantedData;
     
         CondKey newCond = new CondKey(valueCond, lockWaitingCond);
@@ -274,10 +273,10 @@ public class DataBaseWithBatch implements DBInterface.DB {
         lockWaitingCond.lock();
         try {
             while (!newCond.isMet()) {
-                System.out.println("Waiting for new cond");
+                //System.out.println("Waiting for new cond");
                 newCond.getCondition().await();
             }
-            System.out.println("Cond: " + newCond);
+            //System.out.println("Cond: " + newCond);
             return get(key);
         } finally {
             waitingCond.remove(keyCond);
@@ -429,13 +428,13 @@ public class DataBaseWithBatch implements DBInterface.DB {
                     System.err.println("Warning: Attempted to create a String from a null byte array.");
                 }
                 String message = timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | ID: " + key + " - data: " + dataS;
-                System.out.println(message);
+                //System.out.println(message);
                 sessionFile.log(message);
             });
         }
         else {
             String message = timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | Empty ";
-            System.out.println(message);
+            //System.out.println(message);
             sessionFile.log(message);
         }
     }
@@ -456,13 +455,13 @@ public class DataBaseWithBatch implements DBInterface.DB {
                     System.err.println("Warning: Attempted to create a String from a null byte array.");
                 }
                 String message = timestamp + " | Batch Content: " + " | Size of batch: " + batch.size() + " | ID: " + key + " - data: " + dataS;
-                System.out.println(message);
+                //System.out.println(message);
                 sessionFile.log(message);
             });
         }
         else {
             String message = timestamp + " | Batch Content: " + " | Size of batch: " + batch.size() + " | Empty ";
-            System.out.println(message);
+            //System.out.println(message);
             sessionFile.log(message);
         }
     }

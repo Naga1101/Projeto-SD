@@ -52,9 +52,11 @@ public class Worker implements Runnable {
             while(true){
                 ScheduledTask task = tasks.pop();
                 //Thread.sleep(100);
-                //System.out.println(Thread.currentThread().getName() + " têm estado antes do set: " + getStatus() + " está a executar a tarefa");
-                if(getTaskCount() == 0) setStatus(0);
-                //System.out.println(Thread.currentThread().getName() + " têm estado depois do set: " + getStatus() + " está a executar a tarefa");
+                System.out.println(Thread.currentThread().getName() + " têm estado" + getStatus() + " e " + getTaskCount());
+                if(getTaskCount() == 0) {
+                    setStatus(0);
+                    System.out.println(Thread.currentThread().getName() + " definiu o estado" + getStatus());
+                }
 
                 executor.executeTask(task);
             }       

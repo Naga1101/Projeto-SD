@@ -1,18 +1,26 @@
 package server;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+
 import enums.Enums.TaskPriority;
 import enums.Enums.autenticacao;
 import enums.Enums.commandType;
 import enums.Enums.getCommand;
 import enums.Enums.putCommand;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.EOFException;
-import java.io.IOException;
-import java.net.Socket;
-import messagesFormat.*;
+import messagesFormat.AuthReply;
+import messagesFormat.GetMsg;
+import messagesFormat.GetWhenMsg;
+import messagesFormat.LoginMsg;
 import messagesFormat.MsgInterfaces.CliToServMsg;
 import messagesFormat.MsgInterfaces.IMessage;
+import messagesFormat.MultiGetMsg;
+import messagesFormat.MultiPutMsg;
+import messagesFormat.PutMsg;
+import messagesFormat.RegisterMsg;
+import messagesFormat.TimeoutMsg;
 import utils.BoundedBuffer;
 import utils.LogCommands;
 
@@ -97,7 +105,7 @@ public class ClientHandler implements Runnable, AutoCloseable {
 						LoginMsg logRequest = new LoginMsg();
 						logRequest.deserialize(in);
 
-                        System.out.println(logRequest);
+                        //System.out.println(logRequest);
 
                         name = logRequest.getUsername();
                         password = logRequest.getPassword();
@@ -187,7 +195,7 @@ public class ClientHandler implements Runnable, AutoCloseable {
                                 encapsulatedMsg = new EncapsulatedMsg<>(user, getMsg);
                                 encapsulatedMsg.setPriority(TaskPriority.HIGH);
 
-                                System.out.println(encapsulatedMsg);
+                                //System.out.println(encapsulatedMsg);
                                 break;
                             case MULTIGET:
                                 MultiGetMsg multiGetMsg = new MultiGetMsg();
@@ -196,7 +204,7 @@ public class ClientHandler implements Runnable, AutoCloseable {
                                 encapsulatedMsg = new EncapsulatedMsg<>(user, multiGetMsg);
                                 encapsulatedMsg.setPriority(TaskPriority.MEDIUM);
 
-                                System.out.println(encapsulatedMsg);
+                                //System.out.println(encapsulatedMsg);
                                 break;
                             case GETWHEN:
                                 GetWhenMsg getWhenMsg = new GetWhenMsg();
@@ -205,7 +213,7 @@ public class ClientHandler implements Runnable, AutoCloseable {
                                 encapsulatedMsg = new EncapsulatedMsg<>(user, getWhenMsg);
                                 encapsulatedMsg.setPriority(TaskPriority.HIGH);
 
-                                System.out.println(encapsulatedMsg);
+                                //System.out.println(encapsulatedMsg);
                                 break;
                         }
 
@@ -231,7 +239,7 @@ public class ClientHandler implements Runnable, AutoCloseable {
                                 encapsulatedMsg = new EncapsulatedMsg<>(user, putMsg);
                                 encapsulatedMsg.setPriority(TaskPriority.HIGH);                                
 
-                                System.out.println(encapsulatedMsg);
+                                //System.out.println(encapsulatedMsg);
                                 break;
                             case MULTIPUT:
                                 MultiPutMsg multiPutMsg = new MultiPutMsg();
@@ -240,7 +248,7 @@ public class ClientHandler implements Runnable, AutoCloseable {
                                 encapsulatedMsg = new EncapsulatedMsg<>(user, multiPutMsg);
                                 encapsulatedMsg.setPriority(TaskPriority.LOW);
 
-                                System.out.println(encapsulatedMsg);
+                                //System.out.println(encapsulatedMsg);
                                 break;
                         }
 
