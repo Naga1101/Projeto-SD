@@ -8,26 +8,26 @@ public class workflow15cMPH {
 
     public static void main(String[] args) throws Exception {
         String[] multiputPaths = {
-            baseDir + "/test/files/clientsCommands/multiput/multiput1.txt",
-            baseDir + "/test/files/clientsCommands/multiput/multiput2.txt",
-            baseDir + "/test/files/clientsCommands/multiput/multiput3.txt",
-            baseDir + "/test/files/clientsCommands/multiput/multiput4.txt",
-            baseDir + "/test/files/clientsCommands/multiput/multiput5.txt",
-            baseDir + "/test/files/clientsCommands/multiput/multiput6.txt",
-            baseDir + "/test/files/clientsCommands/multiput/multiput7.txt",
-            baseDir + "/test/files/clientsCommands/multiput/multiput8.txt",
-            baseDir + "/test/files/clientsCommands/multiput/multiput9.txt",
-            baseDir + "/test/files/clientsCommands/multiput/multiput10.txt"
+            baseDir + "/test/files/clientsCommands/multiPut/client1.txt",
+            baseDir + "/test/files/clientsCommands/multiPut/client2.txt",
+            baseDir + "/test/files/clientsCommands/multiPut/client3.txt",
+            baseDir + "/test/files/clientsCommands/multiPut/client4.txt",
+            baseDir + "/test/files/clientsCommands/multiPut/client5.txt",
+            baseDir + "/test/files/clientsCommands/multiPut/client6.txt",
+            baseDir + "/test/files/clientsCommands/multiPut/client7.txt",
+            baseDir + "/test/files/clientsCommands/multiPut/client8.txt",
+            baseDir + "/test/files/clientsCommands/multiPut/client9.txt",
+            baseDir + "/test/files/clientsCommands/multiPut/client10.txt"
         };
 
         String[] multigetPaths = {
-            baseDir + "/test/files/clientsCommands/multiget/multiget1.txt",
-            baseDir + "/test/files/clientsCommands/multiget/multiget2.txt"
+            baseDir + "/test/files/clientsCommands/multiGet/client5.txt",
+            baseDir + "/test/files/clientsCommands/multiGet/client8.txt"
         };
 
         String[] putPaths = {
-            baseDir + "/test/files/clientsCommands/put/put1.txt",
-            baseDir + "/test/files/clientsCommands/put/put2.txt"
+            baseDir + "/test/files/clientsCommands/put/client1.txt",
+            baseDir + "/test/files/clientsCommands/put/client2.txt"
         };
 
         String mixedPath = baseDir + "/test/files/clientsCommands/mixedCommands/client1.txt";
@@ -48,6 +48,8 @@ public class workflow15cMPH {
 
         tasks.add(new testClient(mixedPath));
 
+        long startTime = System.currentTimeMillis();
+
         List<Thread> threads = new ArrayList<>();
         for (testClient task : tasks) {
             Thread thread = new Thread(task);
@@ -63,6 +65,8 @@ public class workflow15cMPH {
             System.out.println("Client with command file " + task.getPath() + " took " + task.getDuration() + " ms.");
         }
 
-        System.out.println("Multiput-heavy test with 15 clients completed.");
+        long endTime = System.currentTimeMillis();
+        long duration = endTime - startTime;
+        System.out.println("Multiput-heavy test with 15 clients completed in " + duration + " ms.");
     }
 }

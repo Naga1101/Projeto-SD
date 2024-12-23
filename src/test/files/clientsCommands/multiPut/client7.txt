@@ -1,5 +1,5 @@
-REGISTER conde azevedo
-LOGIN conde azevedo
+REGISTER Conde azevedo
+LOGIN Conde azevedo
 MULTIPUT /test/files/MultiPutTestFiles/test_file1.txt
 MULTIPUT /test/files/MultiPutTestFiles/test_file2.txt
 MULTIPUT /test/files/MultiPutTestFiles/test_file3.txt

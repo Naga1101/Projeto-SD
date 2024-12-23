@@ -1,5 +1,5 @@
-REGISTER zeca 123
-LOGIN zeca 123
+REGISTER zelops 123
+LOGIN zelops 123
 MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget1.txt
 MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget2.txt
 MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget3.txt

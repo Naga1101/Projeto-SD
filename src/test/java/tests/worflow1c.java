@@ -13,7 +13,6 @@ public class worflow1c {
         client1Thread.start();
         client1Thread.join();
 
-        //System.out.println("Client with command file " + client1Path + " took " + clientTask.getDuration() + " ms.");
         System.out.println("Single client ended.");
     }
 }
