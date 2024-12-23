@@ -1,7 +1,7 @@
 REGISTER testuser testpassword
 LOGIN testuser testpassword
 PUT key1 value1
-MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file9.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file9.txt
 GET key1
-MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget1.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget1.txt
 EXIT

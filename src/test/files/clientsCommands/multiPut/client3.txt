@@ -1,0 +1,12 @@
+REGISTER zeca 123
+LOGIN zeca 123
+MULTIPUT /test/files/MultiPutTestFiles/test_file1.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file2.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file3.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file4.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file5.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file6.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file7.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file8.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file9.txt
+EXIT

@@ -1,0 +1,13 @@
+REGISTER asdrubal pass1
+LOGIN asdrubal pass1
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget1.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget2.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget3.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget4.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget5.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget6.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget7.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget8.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget9.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget10.txt
+EXIT

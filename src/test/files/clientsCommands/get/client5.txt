@@ -1,0 +1,13 @@
+REGISTER getuser5 password5
+LOGIN getuser5 password5
+GET key20
+GET key141
+GET key35
+GET key79
+GET key87
+GET key58
+GET key143
+GET key40
+GET key124
+GET key10
+EXIT

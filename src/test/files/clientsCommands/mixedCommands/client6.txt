@@ -1,0 +1,13 @@
+REGISTER mixeduser6 password6
+LOGIN mixeduser6 password6
+GET key3
+PUT key85 someValue
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget6.txt
+PUT key40 randomWord
+MULTIPUT /test/files/MultiPutTestFiles/test_file6.txt
+GET key12
+PUT key150 value150
+GET key9
+PUT key98 value98
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget7.txt
+EXIT

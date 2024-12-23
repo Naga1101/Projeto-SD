@@ -1,0 +1,13 @@
+REGISTER getuser6 password6
+LOGIN getuser6 password6
+GET key4
+GET key68
+GET key137
+GET key25
+GET key89
+GET key53
+GET key118
+GET key15
+GET key105
+GET key46
+EXIT

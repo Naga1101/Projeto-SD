@@ -1,0 +1,13 @@
+REGISTER diogo pass1
+LOGIN diogo pass1
+MULTIPUT /test/files/MultiPutTestFiles/test_file1.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file2.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file3.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file15.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file16.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file17.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file18.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file19.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file20.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file4.txt
+EXIT

@@ -1,0 +1,13 @@
+REGISTER getuser9 password9
+LOGIN getuser9 password9
+GET key93
+GET key84
+GET key28
+GET key122
+GET key11
+GET key134
+GET key62
+GET key48
+GET key5
+GET key139
+EXIT

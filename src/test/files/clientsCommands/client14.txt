@@ -1,9 +1,0 @@
-REGISTER zeca 123
-LOGIN zeca 123
-MULTIGET C:\Users\Nuno Aguiar\Documents\GitHub\Projeto-SD\src\test\files\MultiGetTestFiles\test_fileMultiget1.txt
-MULTIGET C:\Users\Nuno Aguiar\Documents\GitHub\Projeto-SD\src\test\files\MultiGetTestFiles\test_fileMultiget2.txt
-MULTIGET C:\Users\Nuno Aguiar\Documents\GitHub\Projeto-SD\src\test\files\MultiGetTestFiles\test_fileMultiget3.txt
-MULTIGET C:\Users\Nuno Aguiar\Documents\GitHub\Projeto-SD\src\test\files\MultiGetTestFiles\test_fileMultiget4.txt
-MULTIGET C:\Users\Nuno Aguiar\Documents\GitHub\Projeto-SD\src\test\files\MultiGetTestFiles\test_fileMultiget5.txt
-MULTIGET C:\Users\Nuno Aguiar\Documents\GitHub\Projeto-SD\src\test\files\MultiGetTestFiles\test_fileMultiget6.txt
-EXIT

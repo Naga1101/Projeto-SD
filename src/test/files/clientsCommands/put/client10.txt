@@ -1,0 +1,13 @@
+REGISTER putuser10 password10
+LOGIN putuser10 password10
+PUT key93 value1
+PUT key84 value2
+PUT key28 value3
+PUT key122 value4
+PUT key11 value5
+PUT key134 value6
+PUT key62 value7
+PUT key48 value8
+PUT key5 value9
+PUT key139 value10
+EXIT

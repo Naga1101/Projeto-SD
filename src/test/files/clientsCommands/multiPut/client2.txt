@@ -1,0 +1,13 @@
+REGISTER joao pass2
+LOGIN joao pass2
+MULTIPUT /test/files/MultiPutTestFiles/test_file5.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file6.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file7.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file8.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file15.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file16.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file17.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file18.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file19.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file20.txt
+EXIT

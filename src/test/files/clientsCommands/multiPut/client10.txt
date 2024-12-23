@@ -1,0 +1,13 @@
+REGISTER clark kent
+LOGIN clark kent
+MULTIPUT /test/files/MultiPutTestFiles/test_file9.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file10.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file11.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file12.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file15.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file16.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file17.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file18.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file19.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file20.txt
+EXIT

@@ -1,0 +1,13 @@
+REGISTER mixeduser8 password8
+LOGIN mixeduser8 password8
+PUT key56 value56
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget9.txt
+PUT key99 testKey99
+GET key35
+MULTIPUT /test/files/MultiPutTestFiles/test_file7.txt
+PUT key124 testValue124
+GET key65
+PUT key1 value1
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget3.txt
+GET key142
+EXIT

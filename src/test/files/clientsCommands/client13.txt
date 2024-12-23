@@ -1,9 +1,0 @@
-REGISTER mac donald
-LOGIN mac donald
-MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget4.txt
-MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget8.txt
-MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget7.txt
-MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget5.txt
-MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget1.txt
-MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget3.txt
-EXIT

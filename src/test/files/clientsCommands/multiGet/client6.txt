@@ -1,0 +1,13 @@
+REGISTER tomas pass5
+LOGIN tomas pass5
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget1.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget2.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget3.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget4.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget5.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget11.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget12.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget13.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget14.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget15.txt
+EXIT

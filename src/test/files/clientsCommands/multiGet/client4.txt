@@ -1,0 +1,9 @@
+REGISTER zeca 123
+LOGIN zeca 123
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget1.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget2.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget3.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget4.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget5.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget6.txt
+EXIT

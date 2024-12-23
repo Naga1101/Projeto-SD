@@ -1,0 +1,13 @@
+REGISTER getuser3 password3
+LOGIN getuser3 password3
+GET key9
+GET key61
+GET key144
+GET key80
+GET key21
+GET key99
+GET key47
+GET key123
+GET key32
+GET key6
+EXIT

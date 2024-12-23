@@ -1,0 +1,10 @@
+REGISTER wendy marvel
+LOGIN wendy marvel
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget14.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget8.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget6.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget15.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget13.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget9.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget7.txt
+EXIT

@@ -1,0 +1,13 @@
+REGISTER ruca pass4
+LOGIN ruca pass4
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget2.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget4.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget6.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget8.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget10.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget12.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget14.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget16.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget18.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget20.txt
+EXIT

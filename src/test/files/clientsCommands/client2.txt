@@ -1,6 +1,6 @@
 LOGIN admin1 123
 PUT key9 value5
-MULTIPUT /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiPutTestFiles/test_file4.txt
+MULTIPUT /test/files/MultiPutTestFiles/test_file4.txt
 GET key1
-MULTIGET /home/naguiar/code/Projeto_Git/Projeto-SD/src/test/files/MultiGetTestFiles/test_fileMultiget6.txt
+MULTIGET /test/files/MultiGetTestFiles/test_fileMultiget6.txt
 EXIT
