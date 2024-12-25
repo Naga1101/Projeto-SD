@@ -3,7 +3,7 @@ package tests;
 import java.util.ArrayList;
 import java.util.List;
 
-public class workflow15cPH {
+public class workflow15cPHTestCase {
     private final static String baseDir = System.getProperty("user.dir");
 
     public static void main(String[] args) throws Exception {
@@ -32,26 +32,26 @@ public class workflow15cPH {
 
         String mixedPath = baseDir + "/test/files/clientsCommands/mixedCommands/client3.txt";
 
-        List<testClient> tasks = new ArrayList<>();
+        List<TestClient> tasks = new ArrayList<>();
 
         for (String path : multigetPaths) {
-            tasks.add(new testClient(path));
+            tasks.add(new TestClient(path));
         }
 
         for (String path : multiputPaths) {
-            tasks.add(new testClient(path));
+            tasks.add(new TestClient(path));
         }
 
         for (String path :getEputPaths) {
-            tasks.add(new testClient(path));
+            tasks.add(new TestClient(path));
         }
 
-        tasks.add(new testClient(mixedPath));
+        tasks.add(new TestClient(mixedPath));
 
         long startTime = System.currentTimeMillis();
 
         List<Thread> threads = new ArrayList<>();
-        for (testClient task : tasks) {
+        for (TestClient task : tasks) {
             Thread thread = new Thread(task);
             threads.add(thread);
             thread.start();
@@ -61,7 +61,7 @@ public class workflow15cPH {
             thread.join();
         }
 
-        for (testClient task : tasks) {
+        for (TestClient task : tasks) {
             System.out.println("Client with command file " + task.getPath() + " took " + task.getDuration() + " ms.");
         }
 

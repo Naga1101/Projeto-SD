@@ -1,12 +1,12 @@
 package tests;
 
-public class worflow1c {
+public class workflow1cTestCase {
     private final static String baseDir = System.getProperty("user.dir");
 
     public static void main(String[] args) throws Exception {
         String client1Path = baseDir + "/test/files/clientsCommands/mixedCommands/client2.txt";
 
-        testClient clientTask = new testClient(client1Path);
+        TestClient clientTask = new TestClient(client1Path);
 
         Thread client1Thread = new Thread(clientTask);
 

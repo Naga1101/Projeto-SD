@@ -2,11 +2,11 @@ package tests;
 
 import client.SimplifiedClient;
 
-public class testClient implements Runnable {
+public class TestClient implements Runnable {
     private final String commandPath;
     private long duration;
 
-    public testClient(String commandPath) {
+    public TestClient(String commandPath) {
         this.commandPath = commandPath;
     }
 

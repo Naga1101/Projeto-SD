@@ -1,5 +1,8 @@
 package server;
 
+import utils.BoundedBuffer;
+import utils.LogCommands;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -7,8 +10,6 @@ import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import utils.BoundedBuffer;
-import utils.LogCommands;
 
 public class Server {
     private static final int PORT = 12345;
@@ -39,6 +40,9 @@ public class Server {
     private static int numDispatchers;
     private static int maxConcurrentUsers;
     private static int typeDB;
+
+    // relativo aos workers
+    private static int workersCapped = 0;
 
 
     public static void main(String[] args) {
@@ -198,11 +202,13 @@ public class Server {
                 break;
         }
 
-        List<Worker> workers = new ArrayList<>(numWorkers); 
+        List<Worker> workers = new ArrayList<>(numWorkers);
         List<Thread> workerThreads = new ArrayList<>(numWorkers);
+        var workersLock = new ReentrantLock();
+        var freeWorkers = workersLock.newCondition();
 
         for (int i = 0; i < numWorkers; i++) {
-            Worker worker = new Worker(5);
+            Worker worker = new Worker(10, workersLock, freeWorkers);
             workers.add(worker);
 
             Thread thread = new Thread(worker, "Worker-" + i);
@@ -210,7 +216,7 @@ public class Server {
             thread.start();
         }
 
-        SchedulerThreadPool schedulerPool = new SchedulerThreadPool(numSchedulers, workers);
+        SchedulerThreadPool schedulerPool = new SchedulerThreadPool(numSchedulers, workers, workersLock, freeWorkers);
         try {
             schedulerPool.awaitTaskPool();
         } catch (InterruptedException e) {
@@ -249,7 +255,7 @@ public class Server {
         }
     }
 
-    // incrementador para um id
+    // incrementador decrementadores e gets
 
     public static int getNextId() {
         lockCounter.lock();
@@ -258,5 +264,17 @@ public class Server {
         } finally {
             lockCounter.unlock();
         }
+    }
+
+    public static int getWorkersCapped(){
+        return workersCapped;
+    }
+
+    public static void decrementCappedWorkers(){
+        workersCapped--;
+    }
+
+    public static void incrementCappedWorkers(){
+        workersCapped++;
     }
 }

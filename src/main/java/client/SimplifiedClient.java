@@ -1,5 +1,12 @@
 package client;
 
+import enums.Enums.commandType;
+import enums.Enums.getCommand;
+import enums.Enums.putCommand;
+import messagesFormat.*;
+import messagesFormat.MsgInterfaces.CliToServMsg;
+import utils.BoundedBuffer;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -13,26 +20,6 @@ import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import enums.Enums.commandType;
-import enums.Enums.getCommand;
-import enums.Enums.putCommand;
-import messagesFormat.AuthReply;
-import messagesFormat.ExitMsg;
-import messagesFormat.GetMsg;
-import messagesFormat.GetReply;
-import messagesFormat.GetWhenMsg;
-import messagesFormat.GetWhenReply;
-import messagesFormat.LoginMsg;
-import messagesFormat.MsgInterfaces.CliToServMsg;
-import messagesFormat.MultiGetMsg;
-import messagesFormat.MultiGetReply;
-import messagesFormat.MultiPutMsg;
-import messagesFormat.MultiPutReply;
-import messagesFormat.PutMsg;
-import messagesFormat.PutReply;
-import messagesFormat.RegisterMsg;
-import utils.BoundedBuffer;
 
 public class SimplifiedClient implements AutoCloseable {
     private static final String SERVER_ADDRESS = "localhost";
@@ -55,7 +42,7 @@ public class SimplifiedClient implements AutoCloseable {
     private String username = "";
 
     private final static String baseDir = System.getProperty("user.dir");
-    
+
         public void startClient(String clientFilePath) throws Exception {
             try {
                 socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
