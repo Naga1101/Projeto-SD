@@ -1,10 +1,14 @@
 package server;
 
-import enums.Enums.TaskPriority;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+
+import enums.Enums.TaskPriority;
 
 public class SortedBoundedBuffer<T extends ScheduledTask> {
     private List<T> list;
@@ -90,23 +94,24 @@ public class SortedBoundedBuffer<T extends ScheduledTask> {
             TaskPriority.MEDIUM, 84,  // 6*14
             TaskPriority.LOW, 36  // 2 * 18
         );
-
+    
         List<T> exceededThreshold = new ArrayList<>();
         List<T> normalTasks = new ArrayList<>();
-
+    
         for (T task : list) {
-            int taskThreshold = thresholds.get(task.getBasePriority());
+            Integer taskThreshold = thresholds.getOrDefault(task.getBasePriority(), Integer.MAX_VALUE);
+            
             if (task.getRealPriority() > taskThreshold) {
                 exceededThreshold.addLast(task);
             } else {
                 normalTasks.addLast(task);
             }
         }
-
+    
         exceededThreshold.sort(Comparator.comparing(T::getRealPriority));
-
+    
         list.clear();
         list.addAll(exceededThreshold);
         list.addAll(normalTasks);
-    }
+    }    
 }

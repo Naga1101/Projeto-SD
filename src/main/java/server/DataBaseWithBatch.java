@@ -316,7 +316,7 @@ public class DataBaseWithBatch implements DBInterface.DB {
 
 
     public void flushBatch(){
-        System.out.println("Flushing batch");
+        // System.out.println("Flushing batch");
         lockBatch.lock();
         try {
             String timestamp = getCurrentTimestamp();
@@ -348,7 +348,7 @@ public class DataBaseWithBatch implements DBInterface.DB {
     }
 
     public void flushBiggerBatch(Map<String, byte[]> pairs){
-        System.out.println("Flushing bigger batch");
+        //System.out.println("Flushing bigger batch");
         lockDataBase.lock();
         try{
             String timestamp = getCurrentTimestamp();

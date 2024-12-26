@@ -1,13 +1,12 @@
 package server;
 
-import enums.Enums.WorkerStatus;
-import utils.BoundedBuffer;
-
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import enums.Enums.WorkerStatus;
 import static server.Server.decrementCappedWorkers;
 import static server.Server.incrementCappedWorkers;
+import utils.BoundedBuffer;
 
 public class Worker implements Runnable {
     private final int cap;
@@ -17,13 +16,15 @@ public class Worker implements Runnable {
     private ExecuteTask executor = new ExecuteTask();
     private ReentrantLock workersLock;
     private Condition freeWorker;
+    private int numWorkers;
 
-    public Worker(int bufferSize, ReentrantLock workersLock, Condition freeWorker) {
+    public Worker(int bufferSize, ReentrantLock workersLock, Condition freeWorker, int numWorkers) {
         this.status = WorkerStatus.FREE;
         this.cap = bufferSize;
         this.tasks = new BoundedBuffer<>(bufferSize);
         this.workersLock = workersLock;
         this.freeWorker = freeWorker;
+        this.numWorkers = numWorkers;
     }
 
     public WorkerStatus getStatus() {
@@ -49,8 +50,8 @@ public class Worker implements Runnable {
             workersLock.lock();
             try{
                 decrementCappedWorkers();
+                System.out.println(Thread.currentThread().getName() + " definiu o estado" + getStatus() + " e " + getTaskCount());
                 freeWorker.signalAll();
-                System.out.println("estou disponivel");
             } finally {
                 workersLock.unlock();
             }
@@ -75,12 +76,9 @@ public class Worker implements Runnable {
         try{
             while(true){
                 ScheduledTask task = tasks.pop();
-                //Thread.sleep(100);
-                System.out.println(Thread.currentThread().getName() + " têm estado" + getStatus() + " e " + getTaskCount());
-                if(getTaskCount() == 0) {
-                    setStatus(0);
-                    System.out.println(Thread.currentThread().getName() + " definiu o estado" + getStatus());
-                }
+                System.out.println(Thread.currentThread().getName() + " têm estado " + getStatus() + " e " + getTaskCount());
+                //Thread.sleep(150);
+                if(getTaskCount() == 0) setStatus(0);
 
                 executor.executeTask(task);
             }       

@@ -1,15 +1,19 @@
 package server;
 
-import utils.BoundedBuffer;
-import utils.LogCommands;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import utils.BoundedBuffer;
+import utils.LogCommands;
 
 public class Server {
     private static final int PORT = 12345;
@@ -175,8 +179,12 @@ public class Server {
         try {
             currentOnlineUsers--;
             waitingQueueCondition.signal();
-            System.out.println("Current online users: " + currentOnlineUsers);
-            System.out.println(usersAuthenticator);
+            if(currentOnlineUsers == 0){
+                System.out.println("Current online users: " + currentOnlineUsers);
+                System.out.println(usersAuthenticator);  
+            }
+            // System.out.println("Current online users: " + currentOnlineUsers);
+            // System.out.println(usersAuthenticator);
         } finally {
             waitingUsersLock.unlock();
         }
@@ -208,7 +216,7 @@ public class Server {
         var freeWorkers = workersLock.newCondition();
 
         for (int i = 0; i < numWorkers; i++) {
-            Worker worker = new Worker(10, workersLock, freeWorkers);
+            Worker worker = new Worker(10, workersLock, freeWorkers, numWorkers);
             workers.add(worker);
 
             Thread thread = new Thread(worker, "Worker-" + i);

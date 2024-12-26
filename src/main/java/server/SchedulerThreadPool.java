@@ -1,11 +1,10 @@
 package server;
 
-import enums.Enums.WorkerStatus;
-
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import enums.Enums.WorkerStatus;
 import static server.Server.getWorkersCapped;
 import static server.Server.unscheduledTaks;
 
@@ -66,42 +65,41 @@ public class SchedulerThreadPool {
 
                 if (task != null) {
                     Worker bestWorker = null;
-
-                    workersLock.lock();
-                    try{
-                        while(bestWorker == null){
-                                for(Worker worker : workers){
-                                    if(worker.getStatus() == WorkerStatus.FREE){
-                                        bestWorker = worker;
-                                        break;
-                                    } else if(worker.getStatus() == WorkerStatus.WORKING){
-                                        if(bestWorker == null || bestWorker.getTaskCount() > worker.getTaskCount()){
-                                            bestWorker = worker;
-                                        }
-                                    }
+                    while(bestWorker == null){
+                        for(Worker worker : workers){
+                            if(worker.getStatus() == WorkerStatus.FREE){
+                                bestWorker = worker;
+                                break;
+                            } else if(worker.getStatus() == WorkerStatus.WORKING){
+                                if(bestWorker == null || bestWorker.getTaskCount() > worker.getTaskCount()){
+                                    bestWorker = worker;
                                 }
-
-                                if(bestWorker != null){
-                                    try{
-                                        System.out.println("O worker é " + bestWorker.getNome() + " com status " + bestWorker.getStatus());
-                                        bestWorker.setStatus(1);
-                                        bestWorker.getTasks().push(task);
-                                    } catch(Exception e){
-                                        System.out.println(getName() + e);
-                                    }
-                                }
-                                else {
-                                    while(getWorkersCapped() >= workers.size()){
-                                        System.out.println("Aguardar por workers disponiveis");
-                                        freeWorkers.await();
-                                    }
-                                    System.out.println("worker disponivel");
-                                }
+                            }
                         }
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    } finally {
-                        workersLock.unlock();
+
+                        if(bestWorker != null){
+                            try{
+                                System.out.println("O bestworker é " + bestWorker.getNome() + " com status " + bestWorker.getStatus() + " e " + bestWorker.getTaskCount());
+                                bestWorker.setStatus(1);
+                                bestWorker.getTasks().push(task);
+                            } catch(Exception e){
+                                System.out.println(getName() + e);
+                            }
+                        }
+                        else {
+                            workersLock.lock();
+                            try{
+                                while(getWorkersCapped() >= workers.size()){
+                                    System.out.println("Aguardar por workers disponiveis");
+                                    freeWorkers.await();
+                                }
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            } finally {
+                                workersLock.unlock();
+                            }
+                            System.out.println("worker disponivel");
+                        }
                     }
                 }
             }
