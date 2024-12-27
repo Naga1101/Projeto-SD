@@ -119,11 +119,16 @@ public class workflow50cTestCase {
         System.out.println("Results of test with 50 clients:");
 
         long totalDuration = 0;
+        long shortestTime = 0;
+        long longestTime = 0;
         for (TestClient task : tasks) {
             System.out.println("Client with command file " + task.getPath() + " took " + task.getDuration() + " ms.");
             totalDuration += task.getDuration();
+            if(shortestTime == 0 || task.getDuration() < shortestTime) shortestTime = task.getDuration();
+            if(task.getDuration() > longestTime) longestTime = task.getDuration();
         }
-        
+        System.out.println("Shortest time a client was connected: " + String.format("%.2f", (double) shortestTime) + " ms.");
+        System.out.println("Longest time a client was connected: " + String.format("%.2f", (double) longestTime) + " ms.");
         double meanDuration = (double) totalDuration / tasks.size();
         System.out.println("Average duration per client: " + String.format("%.2f", meanDuration) + " ms.");
     }
