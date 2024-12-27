@@ -179,12 +179,12 @@ public class Server {
         try {
             currentOnlineUsers--;
             waitingQueueCondition.signal();
-            if(currentOnlineUsers == 0){
-                System.out.println("Current online users: " + currentOnlineUsers);
-                System.out.println(usersAuthenticator);  
-            }
-            // System.out.println("Current online users: " + currentOnlineUsers);
-            // System.out.println(usersAuthenticator);
+            // if(currentOnlineUsers == 0){
+            //     System.out.println("Current online users: " + currentOnlineUsers);
+            //     System.out.println(usersAuthenticator);  
+            // }
+            System.out.println("Current online users: " + currentOnlineUsers);
+            System.out.println(usersAuthenticator);
         } finally {
             waitingUsersLock.unlock();
         }

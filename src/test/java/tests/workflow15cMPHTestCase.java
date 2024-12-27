@@ -5,6 +5,7 @@ import java.util.List;
 
 public class workflow15cMPHTestCase {
     private final static String baseDir = System.getProperty("user.dir");
+    private static volatile boolean logMetrics = true;
 
     public static void main(String[] args) throws Exception {
         String[] multiputPaths = {
@@ -49,6 +50,19 @@ public class workflow15cMPHTestCase {
         tasks.add(new TestClient(mixedPath));
 
         long startTime = System.currentTimeMillis();
+        TestLogger log = new TestLogger(3, startTime);
+
+        Thread logger = new Thread(() -> {
+            try {
+                while (logMetrics) {
+                    log.logMetrics();
+                    Thread.sleep(500);
+                }
+            } catch (InterruptedException e) {
+                System.err.println("Logger thread interrupted: " + e.getMessage());
+            }
+        });
+        logger.start();
 
         List<Thread> threads = new ArrayList<>();
         for (TestClient task : tasks) {
@@ -60,6 +74,8 @@ public class workflow15cMPHTestCase {
         for (Thread thread : threads) {
             thread.join();
         }
+        logMetrics = false;   
+        logger.join();  
 
         for (TestClient task : tasks) {
             System.out.println("Client with command file " + task.getPath() + " took " + task.getDuration() + " ms.");
