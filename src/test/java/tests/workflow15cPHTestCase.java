@@ -77,12 +77,15 @@ public class workflow15cPHTestCase {
         logMetrics = false;   
         logger.join();  
 
+        System.out.println("Results of put-heavy test with 15 clients:");
+
+        long totalDuration = 0;
         for (TestClient task : tasks) {
             System.out.println("Client with command file " + task.getPath() + " took " + task.getDuration() + " ms.");
+            totalDuration += task.getDuration();
         }
-
-        long endTime = System.currentTimeMillis();
-        long duration = endTime - startTime;
-        System.out.println("Multiput-heavy test with 15 clients completed in " + duration + " ms.");
+        
+        double meanDuration = (double) totalDuration / tasks.size();
+        System.out.println("Average duration per client: " + String.format("%.2f", meanDuration) + " ms.");
     }
 }
