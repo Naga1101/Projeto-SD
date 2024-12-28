@@ -90,7 +90,7 @@ public class SchedulerThreadPool {
                             workersLock.lock();
                             try{
                                 while(getWorkersCapped() >= workers.size()){
-                                    System.out.println("Aguardar por workers disponiveis");
+                                    System.out.println("Aguardar por workers disponiveis!");
                                     freeWorkers.await();
                                 }
                             } catch (InterruptedException e) {
@@ -98,7 +98,7 @@ public class SchedulerThreadPool {
                             } finally {
                                 workersLock.unlock();
                             }
-                            System.out.println("worker disponivel");
+                            System.out.println("Novo worker disponivel!");
                         }
                     }
                 }

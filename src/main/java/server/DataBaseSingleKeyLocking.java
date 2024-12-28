@@ -347,7 +347,7 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
         try {
             dataBase.forEach((key, value) -> {
                 String data = new String(value.getData(), StandardCharsets.UTF_8);
-                System.out.println("ID: " + key + " - data: " + data);
+                // System.out.println("ID: " + key + " - data: " + data);
             });
             
         } finally {
@@ -369,13 +369,13 @@ public class DataBaseSingleKeyLocking implements DBInterface.DB {
                 dataBase.forEach((key, value) -> {
                     String data = new String(value.getData(), StandardCharsets.UTF_8);
                     String message = timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | ID: " + key + " - data: " + data;
-                    System.out.println(message);
+                    // System.out.println(message);
                     sessionFile.log(message);
                 });
             }
             else {
                 String message = timestamp + " | Main Content: " + " | Size of main: " + dataBase.size() + " | Empty ";
-                System.out.println(message);
+                // System.out.println(message);
                 sessionFile.log(message);
             }
     }

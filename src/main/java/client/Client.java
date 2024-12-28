@@ -133,7 +133,7 @@ public class Client implements AutoCloseable {
 
                     RegisterMsg msg = new RegisterMsg(name, password);
 
-                    System.out.println(msg);
+                    // System.out.println(msg);
 
                     msg.serialize(out);
             
@@ -215,7 +215,7 @@ public class Client implements AutoCloseable {
                             System.out.print("Escreva a chave que procura: ");
                             String key = scanner.nextLine();
                             msg = new GetMsg(key);
-                            System.out.println(msg);
+                            // System.out.println(msg);
 
                             sendBuffer.push(msg);
                             break;
