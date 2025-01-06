@@ -1,3 +1,16 @@
-Correr build.sh
-Se quiserem correr os testes na diretoria test têm uma pasta chamada scripts onde se encontram ficheiros .sh para testar diversos worflows e diversos servidores
-Caso o objetivo seja correr manualmente, na diretoria src têm o runServer.sh e runClient.sh que irão gerar um server e um cliente que se liga ao mesmo, aguardando comandos no terminal.
+# Como correr
+Realizar os próximos comandos no terminal a partir da pasta _src_.
+Para compilar correr o comando: `./build.sh`
+De forma a correr manualmento o server, mantendo-nos na diretoria atual correr: `./runServer.sh` e `./runClient.sh`
+
+# Correr testes
+Compilar da mesma forma que anteriormente explicado.
+Para correr os testes é preciso estar na diretotia dos scripts na pasta _test_, desta forma temos de fazer de utilizar os seguintes comandos (client ou server para entrar na diretoria do teste para um dos dois): `cd test/scripts/(client|server)`
+De forma a correr ostestes é escolher um dos server na pasta _server_ e um dos workflows na pasta _client_ (escolher primeiro a pasta com o nº de clientes que se vai testar e depois correr os .sh).
+
+# Problema de permissão
+No caso dos ficheiros .sh darem erro é necessário dar permissão de execução aos mesmos: `chmod -R +x *.sh`
+
+# Limpar a solução
+Realizar o próximo comando no terminal a partir da pasta _src_.
+Para limpar a solução utilizamos o comando: `./clean.sh`
