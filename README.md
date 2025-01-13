@@ -1,3 +1,6 @@
+# Nota de Projeto
+19.2
+
 # Como correr
 Realizar os próximos comandos no terminal a partir da pasta _src_.
 Para compilar correr o comando: `./build.sh`
@@ -16,6 +19,3 @@ No caso dos ficheiros .sh darem erro é necessário dar permissão de execução
 # Limpar a solução
 Realizar o próximo comando no terminal a partir da pasta _src_.
 Para limpar a solução utilizamos o comando: `./clean.sh`
-
-# Nota de Projeto
-19.2
